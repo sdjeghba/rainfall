@@ -1,0 +1,24 @@
+#LEVEL 1
+
+Nous avons un executable ./level0 avec les setuid.
+Il segfault si il est lance sans arguements, et il nous repond "No !" quand il
+en recoit,  nous allons explorer ca avec gdb:
+
+   0x08048ed4 <+20>:	call   0x8049710 <atoi>
+   0x08048ed9 <+25>:	cmp    $0x1a7,%eax
+   0x08048ede <+30>:	jne    0x8048f58 <main+152>
+
+Nous avons un atoi effectue sur notre entree, le resultat est compare avec 423
+(0x1a7) et un jump est effectue dans le cas ou notre entree serait differente,
+vers la fin du programme ou un write est effectue, surement celui du "No !".
+
+Nous relancons le programme avec 423 et nos avons donc un shell en tant que
+user "level1".
+
+Nous allons donc recuperer le mot de passe comme explique dans le PDF.
+
+level0@RainFall:~$ ./level0 423
+$ cat /home/user/level1/.pass
+1fe8a524fa4bec01ca4ea2a869af2a02260d4a7d5fe7e7c24d8617e6dca12d3a
+
+Next level..
