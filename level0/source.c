@@ -14,7 +14,6 @@ int	main(int ac, char **av)
 {
 	if (atoi(av[1]) == 423)
 	{
-		char *shell = strdup("/bin/sh");
 		uid_t euid = geteuid();
 		gid_t egid = getegid();
 		setresuid(euid, euid, euid);
