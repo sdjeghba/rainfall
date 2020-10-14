@@ -39,10 +39,10 @@ char *fgets(char *restrict str, int size,FILE * restrict stream);
                                                                 par 804988c qui est une chaine vide
 0x080484df <+59>:	cmp    $0x40,%eax			(8) eax est ensuite comparé à 0x40 ou 64 en décimale
 0x080484e2 <+62>:	jne    0x8048518 <v+116>		(9) 		
-0x0804850c <+104>:	movl   $0x804860d,(%esp)		(10a) si eax == 0x40 alors on abouti sur le shell /bin/sh 
+0x0804850c <+104>:	movl   $0x804860d,(%esp)		(9a) si eax == 0x40 alors on abouti sur le shell /bin/sh 
 0x08048513 <+111>:	call   0x80483c0 <system@plt>	              $0x804860d étant “/bin/sh”
    
-0x08048518 <+116>:	leave			                (10b) si eax != 0x40 alors on quitte la fonction
+0x08048518 <+116>:	leave			                (9b) si eax != 0x40 alors on quitte la fonction
 0x08048519 <+117>:	ret
 
 La question est donc : comment réécrire le contenu de 0x804988c avec “0x40” ?
