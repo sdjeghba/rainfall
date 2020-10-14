@@ -24,22 +24,23 @@ char *fgets(char *restrict str, int size,FILE * restrict stream);
 
 >$ (gdb) disas v
 
-0x080484ad <+9>:	mov    0x8049860,%eax           (1) restrict stream : 0x8049860=STDIN
+0x080484ad <+9>:	mov    0x8049860,%eax                   (1) restrict stream : 0x8049860=STDIN
 0x080484b2 <+14>:	mov    %eax,0x8(%esp)				
-0x080484b6 <+18>:	movl   $0x200,0x4(%esp)         (2) size
-0x080484be <+26>:	lea    -0x208(%ebp),%eax		    (3) restrict str (notre input)
+0x080484b6 <+18>:	movl   $0x200,0x4(%esp)                 (2) size
+0x080484be <+26>:	lea    -0x208(%ebp),%eax		        (3) restrict str (notre input)
 0x080484c4 <+32>:	mov    %eax,(%esp) 
-0x080484c7 <+35>:	call   0x80483a0 <fgets@plt>	  (4) appel fgets avec les arguments (1), (2) & (3)
+0x080484c7 <+35>:	call   0x80483a0 <fgets@plt>	        (4) appel fgets avec les arguments (1), (2) & (3)
 0x080484cc <+40>:	lea    -0x208(%ebp),%eax
-0x080484d2 <+46>:	mov    %eax,(%esp)				      (5) push notre input en argument pour printf
-0x080484d5 <+49>:	call   0x8048390 <printf@plt> 	(6) appel printf qui nous affiche notre input
-0x080484da <+54>:	mov    0x804988c,%eax			      (7) eax qui devrait contenir le retour de printf (le nombres caractères affichés) est écrasé par 804988c 												qui est une chaine vide
+0x080484d2 <+46>:	mov    %eax,(%esp)				        (5) push notre input en argument pour printf
+0x080484d5 <+49>:	call   0x8048390 <printf@plt> 	        (6) appel printf qui nous affiche notre input
+0x080484da <+54>:	mov    0x804988c,%eax			        (7) eax qui devrait contenir le retour de printf (le nombres caractères affichés) est écrasé 
+                                                                par 804988c qui est une chaine vide
 0x080484df <+59>:	cmp    $0x40,%eax				        (8) eax est ensuite comparé à 0x40 ou 64 en décimale
-0x080484e2 <+62>:	jne    0x8048518 <v+116>		    (9) 		
-0x0804850c <+104>:	movl   $0x804860d,(%esp)		  (10a) si eax == 0x40 alors on abouti sur le shell /bin/sh 
-0x08048513 <+111>:	call   0x80483c0 <system@plt>	      $0x804860d étant “/bin/sh”
+0x080484e2 <+62>:	jne    0x8048518 <v+116>		        (9) 		
+0x0804850c <+104>:	movl   $0x804860d,(%esp)		        (10a) si eax == 0x40 alors on abouti sur le shell /bin/sh 
+0x08048513 <+111>:	call   0x80483c0 <system@plt>	              $0x804860d étant “/bin/sh”
    
-0x08048518 <+116>:	leave						              (10b) si eax != 0x40 alors on quitte la fonction
+0x08048518 <+116>:	leave						            (10b) si eax != 0x40 alors on quitte la fonction
 0x08048519 <+117>:	ret
 
 La question est donc : comment réécrire le contenu de 0x804988c avec “0x40” ?
