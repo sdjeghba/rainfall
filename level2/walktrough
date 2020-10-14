@@ -1,4 +1,9 @@
-#LEVEL2
+.__                     .__   ________  
+|  |   _______  __ ____ |  |  \_____  \ 
+|  | _/ __ \  \/ // __ \|  |   /  ____/ 
+|  |_\  ___/\   /\  ___/|  |__/       \ 
+|____/\___  >\_/  \___  >____/\_______ \
+          \/          \/              \/
 
 On lance le binaire et on se rend compte qu'il duplique ce que l'on écrit sur l'entrée standard.
 
