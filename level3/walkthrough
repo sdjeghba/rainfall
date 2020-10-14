@@ -27,7 +27,7 @@ char *fgets(char *restrict str, int size,FILE * restrict stream);
 0x080484ad <+9>:	mov    0x8049860,%eax                   (1) restrict stream : 0x8049860=STDIN
 0x080484b2 <+14>:	mov    %eax,0x8(%esp)				
 0x080484b6 <+18>:	movl   $0x200,0x4(%esp)                 (2) size
-0x080484be <+26>:	lea    -0x208(%ebp),%eax		        (3) restrict str (notre input)
+0x080484be <+26>:	lea    -0x208(%ebp),%eax		   (3) restrict str (notre input)
 0x080484c4 <+32>:	mov    %eax,(%esp) 
 0x080484c7 <+35>:	call   0x80483a0 <fgets@plt>	        (4) appel fgets avec les arguments (1), (2) & (3)
 0x080484cc <+40>:	lea    -0x208(%ebp),%eax
