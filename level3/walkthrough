@@ -13,7 +13,9 @@ AAAA
 
 Again …
 
-En désassemblant le binaire sur gdb on peut voir que le <main> fait appel à une fonction <v>. On parcours <v> celle ci utilise la fonction fgets().
+>$ (gdb) objdump -d level3
+
+On peut voir que le <main> fait appel à une fonction <v>. On parcours <v> celle ci utilise la fonction fgets().
 L’utilisation de fgets() à la place de gets() complique la tâche de réalisation d’un buffer overflow : 
 
 “The gets() function cannot be used securely.  Because of its lack of bounds checking, and the inability for the calling program to reliably determine 
@@ -45,7 +47,7 @@ char *fgets(char *restrict str, int size,FILE * restrict stream);
 
 La question est donc : comment réécrire le contenu de 0x804988c avec “0x40” ?
 
-On peut remarquer cependant la présence de printf() qui est une source importantes d'exploitations type format strings.
+On peut remarquer la présence de printf() qui est une source importantes d'exploitations type format strings.
 
 Afin de mener à bien cet exploit. Il nous faut :
  
@@ -57,7 +59,7 @@ level3@RainFall:~$ ./level3
 AAAA%x
 AAAA200
 
-printf() n’ayant aucune n’argument auquel référer “%x” nous affiche ce qu’il trouve sur la stack. 
+printf() n’ayant aucun n’argument auquel référer “%x”, printf() nous affiche ce qu’il trouve sur la stack. 
 
     2. Localiser le buffer de printf() dans la memoire
 
