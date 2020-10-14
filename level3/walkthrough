@@ -49,7 +49,7 @@ On peut remarquer cependant la présence de printf() qui est une source importan
 
 Afin de mener à bien cet exploit. Il nous faut :
  
-1. Lire dans la memoire
+    1. Lire dans la memoire
 
 Ajoutons à notre input un format specifiers “%x” :
 
@@ -59,7 +59,7 @@ AAAA200
 
 printf() n’ayant aucune n’argument auquel référer “%x” nous affiche ce qu’il trouve sur la stack. 
 
-2. Localiser le buffer de printf() dans la memoire
+    2. Localiser le buffer de printf() dans la memoire
 
 Ajoutons progressivement des format specifier “%x” :
 
@@ -74,7 +74,7 @@ AAAA 41414141
 On peut aussi préciser explicitement quel argument prendre, en écrivant, à chaque conversion, « %m$ » […] l’ entier décimal m indique la position dans la liste
 d'arguments (ici notre stack).
 
-3.  Injectez notre adresse 0x804988c dans le buffer de printf()
+    3.  Injectez notre adresse 0x804988c dans le buffer de printf()
 
 level3@RainFall:~$ python -c "print '\x8c\x98\x04\x08'+'%x %x %x %x'" | ./level3
 �200 b7fd1ac0 b7ff37d0 804988c
@@ -86,7 +86,7 @@ level3@RainFall:~$ python -c "print '\x8c\x98\x04\x08'+'%4\$x'" | ./level3
 
 Success ! On retrouve bien 804988c à la position “%4$x”
 
-4. Ecrire dans 0x804988
+    4. Ecrire dans 0x804988
 
 Nous allons utiliser le format specifier “%n“ qui saisis le nombre de caractères qui ont été écrits avec succès avant l’occurence de “%n” dans le flux ou 
 la mémoire tampon. Cette valeur est stockée dans l'entier dont l'adresse est donnée en argument. Or l’argument ici est situé à une position que nous avons 
