@@ -1,4 +1,10 @@
-#LEVEL 1
+.__                     .__  _______   
+|  |   _______  __ ____ |  | \   _  \  
+|  | _/ __ \  \/ // __ \|  | /  /_\  \ 
+|  |_\  ___/\   /\  ___/|  |_\  \_/   \
+|____/\___  >\_/  \___  >____/\_____  /
+          \/          \/            \/ 
+                                       
 
 Nous avons un executable ./level0 avec les setuid.
 Il segfault si il est lance sans arguements, et il nous repond "No !" quand il
