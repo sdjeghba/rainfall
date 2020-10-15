@@ -119,9 +119,11 @@ Il nous faut donc (0x1025544) 16930116 caractères avant “%n” afin de passer
 
 0x080484df <+59>:	cmp    $0x1025544,%eax	
 
-Si nous rajoutons un entier X entre le "%" et "d" du bien connu format specifier "%d" on obtiendra un entier à X chiffres.
-%4d -> entier à 4 chiffres
-%16930116 -> entier à 16930116 chiffres ;)
+Si nous rajoutons un entier X entre le "%" et "d" du bien connu format specifier "%d" on obtiendra un padding d'X espace " ". 
+%Xd étant un format specifier l'input est interpreté au niveau de printf().
+
+%4d -> padding de 4 espaces
+%16930116d -> padding de 16930116 espaces ... ;)
 
 On peut alors monter l'exploit suivante :
 
