@@ -13,7 +13,7 @@ AAAA
 
 Again …
 
->$ (gdb) objdump -d level5
+>$ (gdb) objdump -d level5 
 
 On peut voir que le <main> fait appel à une fonction <n>. Il y'a aussi une fonction <o> laissé-pour-compte mais intéressante :
 
