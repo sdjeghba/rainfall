@@ -24,6 +24,7 @@ users to arbitrarily change a running program's functionality through a buffer o
 that the fgets() function be used in all cases.”
 
 char *fgets(char *restrict str, int size,FILE * restrict stream);
+____________________________________________________________________________________________________________________________
 
 (gdb) disas n
 Dump of assembler code for function n:
@@ -39,7 +40,7 @@ Dump of assembler code for function n:
    0x0804847f <+40>:	lea    -0x208(%ebp),%eax
    0x08048485 <+46>:	mov    %eax,(%esp)              (5) push notre input en argument pour <p>
    0x08048488 <+49>:	call   0x8048444 <p>            (6) appel <p> 
-              -------------------------------------------------------------------------------------------------
+              ---------------------------------------------------------------------------------------------------------------
               CALL <p> [(gdb) disas p]
               0x08048444 <+0>:	push   %ebp
               0x08048445 <+1>:	mov    %esp,%ebp
@@ -49,7 +50,7 @@ Dump of assembler code for function n:
               0x08048450 <+12>:	call   0x8048340 <printf@plt>    (9) appel printf qui nous affiche notre input
               0x08048455 <+17>:	leave
               0x08048456 <+18>:	ret
-              -------------------------------------------------------------------------------------------------
+              ----------------------------------------------------------------------------------------------------------------
    0x0804848d <+54>:	mov    0x8049810,%eax            (10) eax qui devrait contenir le retour de printf (le														
                                                               nombres caractères affichés) est écrasé par 8049810 												
                                                               qui est une chaine vide
@@ -59,7 +60,9 @@ Dump of assembler code for function n:
    0x080484a0 <+73>:	call   0x8048360 <system@plt>         argument 0x8048590 -> "/bin/cat /home/user/level5/.pass"
    0x080484a5 <+78>:	leave                            (12b)si eax != 0x1025544 alors on quitte la fonction
    0x080484a6 <+79>:	ret
+
 End of assembler dump.
+______________________________________________________________________________________________________________________________
 
 La question est donc : comment réécrire le contenu de 0x8049810 avec “0x1025544” ?
 
