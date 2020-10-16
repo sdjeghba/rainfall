@@ -125,8 +125,7 @@ Il nous faut donc (0x1025544) 16930116 caractères avant “%n” afin de passer
 
 Il n'est pas possible de donner directement 16930116 caractères comme input en effet la limite du buffer de fgets nous en empeche
 
-level4@RainFall:~$ python -c 'print "\x10\x98\x04\x08" + 16930112*"A"' | ./level4
-DON'T WORK
+THIS DOES NOT WORK -> level4@RainFall:~$ python -c 'print "\x10\x98\x04\x08" + 16930112*"A"' | ./level4
 
 Cela dit si nous rajoutons un entier X entre le "%" et "d" du bien connu format specifier "%d" on obtiendra un padding d'X espace " ". 
 %Xd étant un format specifier l'input est interpreté au niveau de printf(). 
