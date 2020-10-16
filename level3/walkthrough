@@ -23,6 +23,7 @@ the length of the next incoming line, the use of this function enables malicious
 buffer overflow attack.  It is strongly suggested that the fgets() function be used in all cases.”
 
 char *fgets(char *restrict str, int size,FILE * restrict stream);
+_____________________________________________________________________________________________________________________________________________________
 
 >$ (gdb) disas v
 
@@ -44,6 +45,10 @@ char *fgets(char *restrict str, int size,FILE * restrict stream);
    
 0x08048518 <+116>:	leave			                (9b) si eax != 0x40 alors on quitte la fonction
 0x08048519 <+117>:	ret
+
+End of dump assembler.
+_____________________________________________________________________________________________________________________________________________________
+
 
 La question est donc : comment réécrire le contenu de 0x804988c avec “0x40” ?
 
