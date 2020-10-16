@@ -40,7 +40,7 @@ End of assembler dump.						|
 ________________________________________________________________|
 
 En ce qui concerne <n>, rien de nouveau comme précédemment les args pour la fonction fgets() sont push sur la stack. Notre input est 
-récuperé via fgets(), puis de nouveau notre input est push en argument mais pour printf(). Il nous ai donc renvoyé puisla fonciont exit. 
+récuperé via fgets(), puis de nouveau notre input est push en argument mais pour printf(). Il nous ai donc renvoyé puis la fonciont exit. 
 Cette fois si il n'y a pas de cmp pour nous ouvrir les portes du level suivant ...
 
 Cela dit il y a une fonction <o> non appellée, qui nous permettrait d'accéder à un shell si nous pouvions rediriger
@@ -50,7 +50,7 @@ On peut remarquer le "@plt" suivant chacun des appels aux fonctions de la libC. 
 d'un chargement dynamique de la libC à l'aide d'un procédé impliquant la "plt" procedure linking table, la "got" global offset table
 et la fonction de resolution de symbole.		
 
-En effet on remarque une difference flagrante en effectuant un "$> disas exit" post-run et aprés pré-run :
+En effet on remarque une difference flagrante en effectuant un "$>disas exit" post-run et pré-run :
 
 _______________________________________________________________________________________________________________________________________
 								|
@@ -58,7 +58,7 @@ ________________________________________________________________________________
 Starting program: /home/user/level5/level5			|	Dump of assembler code for function exit@plt:
 								|	   0x080483d0 <+0>:		jmp    *0x8049838
 Breakpoint 1, 0x08048507 in main ()				|	   0x080483d6 <+6>:		push   $0x28
-(gdb) disas exit						|	   0x080483db <+11>:	jmp    0x8048370
+(gdb) disas exit						|	   0x080483db <+11>:		jmp    0x8048370
 Dump of assembler code for function exit:			|	End of assembler dump.
    0xb7e5ebe0 <+0>:	push   %ebx				 \______________________________________________________________________
    0xb7e5ebe1 <+1>:	call   0xb7f56c73			|
