@@ -51,8 +51,8 @@ Dump of assembler code for function n:
               0x08048456 <+18>:	ret
               -------------------------------------------------------------------------------------------------
    0x0804848d <+54>:	mov    0x8049810,%eax            (10) eax qui devrait contenir le retour de printf (le														
-                                                           nombres caractères affichés) est écrasé par 8049810 												
-                                                           qui est une chaine vide
+                                                              nombres caractères affichés) est écrasé par 8049810 												
+                                                              qui est une chaine vide
    0x08048492 <+59>:	cmp    $0x1025544,%eax           (11) eax est ensuite comparé à 0x1025544 ou 16930116 en décimale          
    0x08048497 <+64>:	jne    0x80484a5 <n+78>          (12) 
    0x08048499 <+66>:	movl   $0x8048590,(%esp)         (12a)si eax == 0x1025544 alors on appel <system@plt> avec pour
