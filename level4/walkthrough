@@ -67,7 +67,8 @@ On peut remarquer la présence de printf() qui est une source importantes d'expl
 
 Afin de mener à bien cet exploit. Il nous faut :
  
-1. Lire dans la memoire
+    
+    1. Lire dans la memoire
 
 Ajoutons à notre input un format specifiers “%x” :
 
@@ -77,7 +78,8 @@ AAAA200
 
 printf() n’ayant aucun n’argument auquel référer “%x”, printf() nous affiche donc ce qu’il trouve sur la stack. 
 
-2. Localiser le buffer de printf() dans la memoire
+    
+    2. Localiser le buffer de printf() dans la memoire
 
 Ajoutons progressivement des format specifier “%x” :
 
@@ -97,19 +99,21 @@ AAAA 41414141
 On peut aussi préciser explicitement quel argument prendre, en écrivant, à chaque conversion, « %p$ » […] l’entier 
 décimal p indique la position dans la liste d'arguments (ici notre stack).
 
-3.  Injectez notre adresse 0x8049810 dans le buffer de printf()
+    
+    3.  Injectez notre adresse 0x8049810 dans le buffer de printf()
 
 level4@RainFall:~$ python -c 'print "\x10\x98\x04\x08" + "%x %x %x %x %x %x %x %x %x %x %x %x"' | ./level4
 b7ff26b0 bffff754 b7fd0ff4 0 0 bffff718 804848d bffff510 200 b7fd1ac0 b7ff37d0 8049810
 
-OU 
+    OU 
 
 level4@RainFall:~$ python -c 'print "\x10\x98\x04\x08" + "%12$x"' | ./level4
 8049810
 
 Success ! On retrouve bien 8049810 à la position “%12$x”
 
-4. Ecrire dans 8049810
+    
+    4. Ecrire dans 8049810
 
 Nous allons utiliser le format specifier “%n“ qui saisis le nombre de caractères qui ont été écrits avec succès avant l’occurence 
 de “%n” dans le flux ou la mémoire tampon. Cette valeur est stockée dans l'entier dont l'adresse est donnée en argument. Or l’argument 
