@@ -17,26 +17,26 @@ Again …
 
 On peut voir que le <main> fait appel à une fonction <n>. Il y'a aussi une fonction <o> laissé-pour-compte mais intéressante :
 
-_____________________________________________________________________________________________________________________________
-																|
-(gdb) disas n													|	(gdb) disas o											
-Dump of assembler code for function n:							|	Dump of assembler code for function o:
-   0x080484c2 <+0>:		push   %ebp								|		0x080484a4 <+0>:	push   %ebp
-   0x080484c3 <+1>:		mov    %esp,%ebp						|		0x080484a5 <+1>:	mov    %esp,%ebp
-   0x080484c5 <+3>:		sub    $0x218,%esp						|	    0x080484a7 <+3>:	sub    $0x18,%esp
-   0x080484cb <+9>:		mov    0x8049848,%eax					|		0x080484aa <+6>:	movl   $0x80485f0,(%esp)
-   0x080484d0 <+14>:	mov    %eax,0x8(%esp)					|		0x080484b1 <+13>:	call   0x80483b0 <system@plt>
-   0x080484d4 <+18>:	movl   $0x200,0x4(%esp)					|		0x080484b6 <+18>:	movl   $0x1,(%esp)	
-   0x080484dc <+26>:	lea    -0x208(%ebp),%eax				|		0x080484bd <+25>:	call   0x8048390 <_exit@plt>
-   0x080484e2 <+32>:	mov    %eax,(%esp)						|	
+______________________________________________________________________________________________________________________________________
+								|
+(gdb) disas n							|	(gdb) disas o											
+Dump of assembler code for function n:				|	Dump of assembler code for function o:
+   0x080484c2 <+0>:		push   %ebp			|		0x080484a4 <+0>:	push   %ebp
+   0x080484c3 <+1>:		mov    %esp,%ebp		|		0x080484a5 <+1>:	mov    %esp,%ebp
+   0x080484c5 <+3>:		sub    $0x218,%esp		|	    	0x080484a7 <+3>:	sub    $0x18,%esp
+   0x080484cb <+9>:		mov    0x8049848,%eax		|		0x080484aa <+6>:	movl   $0x80485f0,(%esp)
+   0x080484d0 <+14>:	mov    %eax,0x8(%esp)			|		0x080484b1 <+13>:	call   0x80483b0 <system@plt>
+   0x080484d4 <+18>:	movl   $0x200,0x4(%esp)			|		0x080484b6 <+18>:	movl   $0x1,(%esp)	
+   0x080484dc <+26>:	lea    -0x208(%ebp),%eax		|		0x080484bd <+25>:	call   0x8048390 <_exit@plt>
+   0x080484e2 <+32>:	mov    %eax,(%esp)			|	
    0x080484e5 <+35>:	call   0x80483a0 <fgets@plt>            |	End of assembler dump.
-   0x080484ea <+40>:	lea    -0x208(%ebp),%eax				 \_____________________________________________________________
-   0x080484f0 <+46>:	mov    %eax,(%esp)				  	    |
-   0x080484f3 <+49>:	call   0x8048380 <printf@plt>		    |
-   0x080484f8 <+54>:	movl   $0x1,(%esp)					    |                           
+   0x080484ea <+40>:	lea    -0x208(%ebp),%eax		 \_____________________________________________________________________
+   0x080484f0 <+46>:	mov    %eax,(%esp)		  	|
+   0x080484f3 <+49>:	call   0x8048380 <printf@plt>		|
+   0x080484f8 <+54>:	movl   $0x1,(%esp)			|                           
    0x080484ff <+61>:	call   0x80483d0 <exit@plt>             |
-   																|
-End of assembler dump.											|
+   								|
+End of assembler dump.						|
 ________________________________________________________________|
 
 Rien de nouveau ici comme précédemment les args pour la fonction fgets() sont push sur la stack. Notre input est récuperé via 
@@ -52,26 +52,26 @@ et la fonction de resolution de symbole.
 
 En effet on remarque une difference flagrante en effectuant un "$> disas exit" post-run et aprés pré-run :
 
-__________________________________________________________________________________________________________________________________
-																|
-(gdb) run														|	(gdb) disas exit
-Starting program: /home/user/level5/level5						|	Dump of assembler code for function exit@plt:
-																|	   0x080483d0 <+0>:		jmp    *0x8049838
-Breakpoint 1, 0x08048507 in main ()								|	   0x080483d6 <+6>:		push   $0x28
-(gdb) disas exit												|	   0x080483db <+11>:	jmp    0x8048370
-Dump of assembler code for function exit:						|	End of assembler dump.
-   0xb7e5ebe0 <+0>:		push   %ebx								 \________________________________________________________________
-   0xb7e5ebe1 <+1>:		call   0xb7f56c73						|
-   0xb7e5ebe6 <+6>:		add    $0x17240e,%ebx					|	Pré-run la fonction exit() ne semble pas être chargée, ici le 1er
-   0xb7e5ebec <+12>:	sub    $0x18,%esp						|	jmp se fait sur l'adresse CONTENUE dans 0x8049838. Il n'en faut 
-   0xb7e5ebef <+15>:	movl   $0x1,0x8(%esp)					|	pas plus ! Nous pourrions donc remplacer l'adresse contenue dans
-   0xb7e5ebf7 <+23>:	lea    0x3f0(%ebx),%eax					|	0x8049838 par l'adresse de notre fonction <o>, ce qui nous ouvrirait
-   0xb7e5ebfd <+29>:	mov    %eax,0x4(%esp)					|	un shell !
-   0xb7e5ec01 <+33>:	mov    0x20(%esp),%eax					|
-   0xb7e5ec05 <+37>:	mov    %eax,(%esp)						|	(gdb) info func
-   0xb7e5ec08 <+40>:	call   0xb7e5eaf0						|	0x080484a4  o
-   																|	
-End of assembler dump.											|	L'adresse de <o> est donc 0x080484a4.
+_______________________________________________________________________________________________________________________________________
+								|
+(gdb) run							|	(gdb) disas exit
+Starting program: /home/user/level5/level5			|	Dump of assembler code for function exit@plt:
+								|	   0x080483d0 <+0>:		jmp    *0x8049838
+Breakpoint 1, 0x08048507 in main ()				|	   0x080483d6 <+6>:		push   $0x28
+(gdb) disas exit						|	   0x080483db <+11>:	jmp    0x8048370
+Dump of assembler code for function exit:			|	End of assembler dump.
+   0xb7e5ebe0 <+0>:		push   %ebx			 \______________________________________________________________________
+   0xb7e5ebe1 <+1>:		call   0xb7f56c73		|
+   0xb7e5ebe6 <+6>:		add    $0x17240e,%ebx		|	Pré-run la fonction exit() ne semble pas être chargée, ici le 1er
+   0xb7e5ebec <+12>:	sub    $0x18,%esp			|	jmp se fait sur l'adresse CONTENUE dans 0x8049838. Il n'en faut 
+   0xb7e5ebef <+15>:	movl   $0x1,0x8(%esp)			|	pas plus ! Nous pourrions donc remplacer l'adresse contenue dans
+   0xb7e5ebf7 <+23>:	lea    0x3f0(%ebx),%eax			|	0x8049838 par l'adresse de notre fonction <o>, ce qui nous ouvrirait
+   0xb7e5ebfd <+29>:	mov    %eax,0x4(%esp)			|	un shell !
+   0xb7e5ec01 <+33>:	mov    0x20(%esp),%eax			|
+   0xb7e5ec05 <+37>:	mov    %eax,(%esp)			|	(gdb) info func
+   0xb7e5ec08 <+40>:	call   0xb7e5eaf0			|	0x080484a4  o
+   								|	
+End of assembler dump.						|	L'adresse de <o> est donc 0x080484a4.
 ________________________________________________________________|	
 
 
