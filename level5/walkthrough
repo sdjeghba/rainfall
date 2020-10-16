@@ -39,8 +39,8 @@ Dump of assembler code for function n:				|	Dump of assembler code for function 
 End of assembler dump.						|
 ________________________________________________________________|
 
-Rien de nouveau ici comme précédemment les args pour la fonction fgets() sont push sur la stack. Notre input est récuperé via 
-fgets(), puis de nouveau notre input est push en argument mais pour printf(). Il nous ai donc renvoyé puisla fonciont exit. 
+En ce qui concerne <n>, rien de nouveau comme précédemment les args pour la fonction fgets() sont push sur la stack. Notre input est 
+récuperé via fgets(), puis de nouveau notre input est push en argument mais pour printf(). Il nous ai donc renvoyé puisla fonciont exit. 
 Cette fois si il n'y a pas de cmp pour nous ouvrir les portes du level suivant ...
 
 Cela dit il y a une fonction <o> non appellée, qui nous permettrait d'accéder à un shell si nous pouvions rediriger
