@@ -85,7 +85,7 @@ Dump of assembler code for function main:			|	Accrochez vous car ce walkthrough 
 							il va falloir faire sans GDB.
    0x080485f0 <+207>:	movl   $0x8048703,(%esp)	
    0x080485f7 <+214>:	call   0x8048400 <puts@plt>	(7) Nous renvoie les "~~" cette fonction nous est d'aucune utilité. Réutilisons l'exploit GOT. 
-   			--------------------------------------------------------------------------------------------------------------------------------------------
+   			------------------------------------------------------------------------------------------------------------------------------------------------
 			Nous allons utiliser la methodologie du level5. Nous allons modifier la GOT en remplacant l'adresse sensé contenir puts() par l'adresse 
 			de notre fonction <m> :	
 			
