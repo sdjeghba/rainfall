@@ -1,4 +1,9 @@
-#LEVEL 6
+    __               _______
+   / /__ _   _____  / / ___/
+  / / _ \ | / / _ \/ / __ \ 
+ / /  __/ |/ /  __/ / /_/ / 
+/_/\___/|___/\___/_/\____/  
+                            
 
 On lance le binaire sans arguments il segfault, on le relance avec un argument
 il nous print "Nope".
