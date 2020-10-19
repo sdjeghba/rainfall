@@ -120,3 +120,7 @@ $ cat /home/user/level9/.pass
 c542e581c5ba5162a85f767996e3247ed619ef6c6f7b76a59435545dc6259f8a
 
 Caracara, carapuce.
+Il est aussi possible de le faire sans incrementer service jusqu'a atteindre
+l'ecart de 32 octets, il est aussi possible de l'initialiser seulement, il sera
+donc 16 octets apres auth, puis il suffit d'ecrire au minimum 16 octets pour
+arriver a $eax + 0x20. Tout doux le loup.
