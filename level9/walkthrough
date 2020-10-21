@@ -70,21 +70,21 @@ L'opérateur new permet d'allouer de l'espace en mémoire dynamique, c'est-à-di
 
 
 ____________________________________________________________________________________________________________________________________________________________________
-																|			
-(gdb) disas main												|
-Dump of assembler code for function main:						|
-   0x080485f4 <+0>:		push   %ebp								|	
-   0x080485f5 <+1>:		mov    %esp,%ebp						|
-   0x080485f7 <+3>:		push   %ebx								|
-   0x080485f8 <+4>:		and    $0xfffffff0,%esp					|
-   0x080485fb <+7>:		sub    $0x20,%esp         				|
-   0x080485fe <+10>:	cmpl   $0x1,0x8(%ebp)					|	Ici on vérifie que le nombre d'argument est bien supérieur à 1, si oui le programme effectue
-   0x08048602 <+14>:	jg     0x8048610 <main+28>				|	le jump JG et poursuit son éxecution sinon la fonction exit() est appelée.
-   0x08048604 <+16>:	movl   $0x1,(%esp)						|
-   0x0804860b <+23>:	call   0x80484f0 <_exit@plt>			|
- 																|  
-   --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-                                                                |                                                                                                       (gdb) x/60wx 0x804a000                                                                                                                              _ _ Virtual Table                                                                                                                                      			   |
+								|			
+(gdb) disas main						|
+Dump of assembler code for function main:			|
+   0x080485f4 <+0>:	push   %ebp				|	
+   0x080485f5 <+1>:	mov    %esp,%ebp			|
+   0x080485f7 <+3>:	push   %ebx				|
+   0x080485f8 <+4>:	and    $0xfffffff0,%esp			|
+   0x080485fb <+7>:	sub    $0x20,%esp         		|
+   0x080485fe <+10>:	cmpl   $0x1,0x8(%ebp)			|   Ici on vérifie que le nombre d'argument est bien supérieur à 1, si oui le programme effectue
+   0x08048602 <+14>:	jg     0x8048610 <main+28>		|   le jump JG et poursuit son éxecution sinon la fonction exit() est appelée.
+   0x08048604 <+16>:	movl   $0x1,(%esp)			|
+   0x0804860b <+23>:	call   0x80484f0 <_exit@plt>		|
+ 								|  
+   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+                                                                |                                                                                                       (gdb) x/60wx 0x804a000                                                                                                                              	 	    _ _ Virtual Table                                                                                                                                      		|
    0x08048610 <+28>:	movl   $0x6c,(%esp)             (1)     |   OBJECT ALLOCATION PATTERN                                                                           0x804a000:	0x00000000	0x00000071	0x08048848	0x00000000       On voit bien ici que deux espaces mémoires ont été                                |    Tout d'abord la présence d'une virtual table (table des méthodes virtuelles) témoigne de la présennce d'une virtual function (fonction virtuelle).             |                                                                                                                                                     
    0x08048617 <+35>:	call   0x8048530 <_Znwj@plt>     -      |                                                                                                       0x804a010:	0x00000000	0x00000000	0x00000000	0x00000000       - alloués par malloc(), en effet on reconnait le chunk size 0x00000071 qui        |    Tout objet d'une classe avec au moins une fonction virtuelle contient en plus des attributs un pointeur vptr vers une table des méthodes virtuelles.           |                                   
    0x0804861c <+40>:	mov    %eax,%ebx                (2)     |   On constate ici, se répétant deux fois (a puis b), le pattern suivant :                             0x804a020:	0x00000000	0x00000000	0x00000000	0x00000000         nous informe la taille de l'espace alloué  ainsi son état d'utilisation         |    Ce pointeur vptr est en général placé avant les attributs. La table des méthodes virtuelles contient une entrée pour chaque fonction virtuelle de la classe.   |
@@ -92,7 +92,7 @@ Dump of assembler code for function main:						|
    0x08048626 <+50>:	mov    %ebx,(%esp)               -      |       sur la heap ce qui correspond à la création d'un objet                                          0x804a040:	0x00000000	0x00000000	0x00000000	0x00000000         mais aussi avec une adresse 0x08048848 placée au début de nos deux objets.      |    l'objet par un constructeur.                                                                                                                                   |
    0x08048629 <+53>:	call   0x80486f6 <_ZN1NC2Ei>     -      |   (2) La valeur X et l'adresse de l'objet (espace mémoire alloué précédemment) sont passés en         0x804a050:	0x00000000	0x00000000	0x00000000	0x00000000                                                                                         |                                                                                                                                                                   |
    0x0804862e <+58>:	mov    %ebx,0x1c(%esp)          (3)     |       paramètres au constructeur <_ZN1NC2Ei> qui initialise l'objet de class N                        0x804a060:	0x00000000	0x00000000	0x00000000	0x00000000         (gdb) x/a 0x08048848                                                            |    Par analogie :  fonction virtuelle -> N::operator+(N&) <_ZN1NplERS_>                                                                                           |
-   0x08048632 <+62>:	movl   $0x6c,(%esp)             (1)     |   (3) Pour finir l'adresse de l'objet est stocké sur la stack                                         0x804a070:	0x00000005	0x00000071	0x08048848	0x00000000         0x8048848 <_ZTV1N+8>:	0x804873a <_ZN1NplERS_>                            	   |                    table des methodes virtuelle (vtable) ->  <_ZTV1N+8>                                                                                           |
+   0x08048632 <+62>:	movl   $0x6c,(%esp)             (1)     |   (3) Pour finir l'adresse de l'objet est stocké sur la stack                                         0x804a070:	0x00000005	0x00000071	0x08048848	0x00000000         0x8048848 <_ZTV1N+8>:	0x804873a <_ZN1NplERS_>                            |                    table des methodes virtuelle (vtable) ->  <_ZTV1N+8>                                                                                           |
    0x08048639 <+69>:	call   0x8048530 <_Znwj@plt>     -      |                                                                                                       0x804a080:	0x00000000	0x00000000	0x00000000	0x00000000                                                                                         |                    pointeur vptr -> 0x08048848                                                                                                                    |
    0x0804863e <+74>:	mov    %eax,%ebx                (2)     |   Pour rappel : _Znwj -> operator new(unsigned int) & _ZN1NC2Ei -> N::N(int)                          0x804a090:	0x00000000	0x00000000	0x00000000	0x00000000         >$ c++filt _ZTV1N -> "vtable for N"                                             |                    attribut -> valeur X                                                                                                                           |
    0x08048640 <+76>:	movl   $0x6,0x4(%esp)            -      |   Deux objets de la class N sont donc créés et initialisés à l'issue de ce pattern                    0x804a0a0:	0x00000000	0x00000000	0x00000000	0x00000000                                                                                         |                                                                                                                                                                   |
@@ -100,7 +100,7 @@ Dump of assembler code for function main:						|
    0x0804864b <+87>:	call   0x80486f6 <_ZN1NC2Ei>     -      |   (gdb) info proc map --> start of [heap] 0x804a000                                                   0x804a0c0:	0x00000000	0x00000000	0x00000000	0x00000000         un pointeur sur notre fonction  N::operator+(N&). Mais qu'est qu'une vtable ?   |                                                                                                                                                                   |                                     
    0x08048650 <+92>:	mov    %ebx,0x18(%esp)          (3)     |                                                                                      HEAP             0x804a0d0:	0x00000000	0x00000000	0x00000000	0x00000000                                                                                 |_ _ _ _|                                                                                                                                                                   |
                                                                 |                                                Breakpoint 1, 0x08048654 in main () --------->         0x804a0e0:	0x00000006	0x00020f21	0x00000000	0x00000000                                                                                                                                                                                                                                                             |
-   --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
                                                                 |
    0x08048654 <+96>:	mov    0x1c(%esp),%eax                  |   Ici deux nouveaux pointeurs sont affectés à l'adresse de nos 2 objets. 
    0x08048658 <+100>:	mov    %eax,0x14(%esp)                  |   (gdb) x $esp+0x1c -> 0x0804a008 adresse de notre 1er objet <- (gdb) x $esp+0x14
@@ -116,24 +116,24 @@ Dump of assembler code for function main:						|
    0x08048670 <+124>:	mov    0x14(%esp),%eax                      
    0x08048674 <+128>:	mov    %eax,(%esp)                          
    0x08048677 <+131>:	call   0x804870e <_ZN1N13setAnnotationEPc>  
-                        --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-                        (gdb) disas _ZN1N13setAnnotationEPc																																													|											
-                        0x0804870e <+0>:	push   %ebp                                                                                                                 (gdb) x/60wx 0x804a000												|
-                        0x0804870f <+1>:	mov    %esp,%ebp                    Ici notre fonction utilise strlen() sur notre argument AV[1] afin de 		   			0x804a000:	0x00000000	0x00000071	0x08048848	0x41414141			|
-                        0x08048711 <+3>:	sub    $0x18,%esp                   pouvoir utiliser memcpy() en lui passant comme paramètre :                              0x804a010:	0x00000000	0x00000000	0x00000000	0x00000000			|
-                        0x08048714 <+6>:	mov    0xc(%ebp),%eax               - la length de notre AV[1] -> n                                                         ...																	|
-                        0x08048717 <+9>:	mov    %eax,(%esp)                  - notre AV[1] -> src                                                                    0x804a070:	0x00000005	0x00000071	0x08048848	0x00000000			|
-                        0x0804871a <+12>:	call   0x8048520 <strlen@plt>       - l'adresse de notre 1er objet -> dest                                                  ...																	|
-                        0x08048722 <+20>:	add    $0x4,%edx                    void *memcpy(void *dest, const void *src, size_t n);                                    																	|
+                        --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+                        (gdb) disas _ZN1N13setAnnotationEPc																								|											
+                        0x0804870e <+0>:	push   %ebp                                                                                                                 (gdb) x/60wx 0x804a000							|
+                        0x0804870f <+1>:	mov    %esp,%ebp                    Ici notre fonction utilise strlen() sur notre argument AV[1] afin de 		    0x804a000:	0x00000000	0x00000071	0x08048848	0x41414141	|
+                        0x08048711 <+3>:	sub    $0x18,%esp                   pouvoir utiliser memcpy() en lui passant comme paramètre :                              0x804a010:	0x00000000	0x00000000	0x00000000	0x00000000	|
+                        0x08048714 <+6>:	mov    0xc(%ebp),%eax               - la length de notre AV[1] -> n                                                         ...										|
+                        0x08048717 <+9>:	mov    %eax,(%esp)                  - notre AV[1] -> src                                                                    0x804a070:	0x00000005	0x00000071	0x08048848	0x00000000	|
+                        0x0804871a <+12>:	call   0x8048520 <strlen@plt>       - l'adresse de notre 1er objet -> dest                                                  ...										|
+                        0x08048722 <+20>:	add    $0x4,%edx                    void *memcpy(void *dest, const void *src, size_t n);                                    										|
                         0x08048725 <+23>:	mov    %eax,0x8(%esp)                                                                                                       On peut constater 0x41414141 aprés le vptr de notre 1er objet		|
                         0x0804871f <+17>:	mov    0x8(%ebp),%edx                                                                                                       Il est intéterssant de constater que nous pouvons donc réécrire		|
-                        0x08048729 <+27>:	mov    0xc(%ebp),%eax               On copie donc AV[1] dans l'espace memoire alloué pour notre 1er objet.                  le vptr de notre 2nd objet avec un overflow.						|
-                        0x0804872c <+30>:	mov    %eax,0x4(%esp)               Verifions cela sur la heap --> Breakpoint 1, 0x0804867c in main ()                      																	|
-                        0x08048730 <+34>:	mov    %edx,(%esp)                                                                                                          Aprés calcul de l'offset on obtient : 108							|
-                        0x08048733 <+37>:	call   0x8048510 <memcpy@plt>																																									|						
-                        0x08048738 <+42>:	leave																																															|	
-                        0x08048739 <+43>:	ret           																																													|						
-                        --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+                        0x08048729 <+27>:	mov    0xc(%ebp),%eax               On copie donc AV[1] dans l'espace memoire alloué pour notre 1er objet.                  le vptr de notre 2nd objet avec un overflow.				|
+                        0x0804872c <+30>:	mov    %eax,0x4(%esp)               Verifions cela sur la heap --> Breakpoint 1, 0x0804867c in main ()                      										|
+                        0x08048730 <+34>:	mov    %edx,(%esp)                                                                                                          Aprés calcul de l'offset on obtient : 108					|
+                        0x08048733 <+37>:	call   0x8048510 <memcpy@plt>																						|						
+                        0x08048738 <+42>:	leave																									|	
+                        0x08048739 <+43>:	ret           																								|						
+                        --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
                         
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                                                                      
@@ -143,13 +143,13 @@ Dump of assembler code for function main:						|
    0x08048684 <+144>:	mov    0x14(%esp),%eax                                                          injecter un SHELLCODE.
    0x08048688 <+148>:	mov    %eax,0x4(%esp)                               										
    0x0804868c <+152>:	mov    0x10(%esp),%eax                                                         						
-   0x08048690 <+156>:	mov    %eax,(%esp)            							          					    VPTR >>>>> XXXX >>>>> SHELLCODE
+   0x08048690 <+156>:	mov    %eax,(%esp)            							            VPTR >>>>> XXXX >>>>> SHELLCODE
    0x08048693 <+159>:	call   *%edx       	      	L'adresse que nous pouvons réécrire est vptr      ____________|          |          |
-   0x08048695 <+161>:	mov    -0x4(%ebp),%ebx	    Or vptr est déréferencé un 1er fois <+142>    	  _______________________|          |
-   0x08048698 <+164>:	leave			      		Puis c'est le contenu d'EDX qui est call <+159>   __________________________________|
+   0x08048695 <+161>:	mov    -0x4(%ebp),%ebx	    	Or vptr est déréferencé un 1er fois <+142>    	  _______________________|          |
+   0x08048698 <+164>:	leave			      	Puis c'est le contenu d'EDX qui est call <+159>   __________________________________|
    0x08048699 <+165>:	ret
-					     	      					Il nous faut donc une première adresse VPTR qui sera déréferencée XXXX et stocké dans EDX puis c'est
-End of assembler dump.				      			(*edx) le contenue de l'adresse XXXX SHELLCODE est call
+					     	      	Il nous faut donc une première adresse VPTR qui sera déréferencée XXXX et stocké dans EDX puis c'est
+End of assembler dump.				      	(*edx) le contenue de l'adresse XXXX SHELLCODE est call
 _________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
 
