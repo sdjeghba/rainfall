@@ -31,8 +31,8 @@ Après quelques recherches :
 
 "The C++ and Java languages provide function overloading, which means that you can write many functions with the same name, providing that each function 
 takes parameters of different types. In order to be able to distinguish these similarly named functions C++ and Java encode them into a low-level assembler 
-name which uniquely identifies each different version. This process is known as mangling. The "c++filt" program does the inverse mapping: it decodes (demangles) 
-low-level names into user-level names so that they can be read."
+name which uniquely identifies each different version. This process is known as mangling. The "c++filt" program does the inverse mapping: it decodes 
+lo(demangles) level names into user-level names so that they can be read."
 
 Testons "c++filt" sur nos fonctions :
 
@@ -121,8 +121,8 @@ Dump of assembler code for function main:
                         ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                         (gdb) disas _ZN1N13setAnnotationEPc
                         0x0804870e <+0>:	push   %ebp                                                                                                                 (gdb) x/60wx 0x804a000
-                        0x0804870f <+1>:	mov    %esp,%ebp                    Ici notre fonction utilise strlen() sur notre argument AV[1] afin de pouvoir            0x804a000:	0x00000000	0x00000071	0x08048848	0x41414141
-                        0x08048711 <+3>:	sub    $0x18,%esp                   utiliser memcpy() en lui passant comme paramètre :                                      0x804a010:	0x00000000	0x00000000	0x00000000	0x00000000
+                        0x0804870f <+1>:	mov    %esp,%ebp                    Ici notre fonction utilise strlen() sur notre argument AV[1] afin de 		            0x804a000:	0x00000000	0x00000071	0x08048848	0x41414141
+                        0x08048711 <+3>:	sub    $0x18,%esp                   pouvoir utiliser memcpy() en lui passant comme paramètre :                                      0x804a010:	0x00000000	0x00000000	0x00000000	0x00000000
                         0x08048714 <+6>:	mov    0xc(%ebp),%eax               - la length de notre AV[1] -> n                                                         ...
                         0x08048717 <+9>:	mov    %eax,(%esp)                  - notre AV[1] -> src                                                                    0x804a070:	0x00000005	0x00000071	0x08048848	0x00000000
                         0x0804871a <+12>:	call   0x8048520 <strlen@plt>       - l'adresse de notre 1er objet -> dest                                                  ...
