@@ -164,10 +164,11 @@ ________________________________________________________________________________
 
 À l'aide de tout ce que l'on a analysé montons notre exploit :
 
-__________BUFFER__________
- [SHELLCODE][AAAAAA][XXXX]   ------------> contenu
-     XXXX            VPTR    ------------> adresse
-
+VPTR XXXX			  ------------> adresse
+_|____|_________________________
+ [XXXX SHELLCODE][AAAAAA][VPTR]   ------------> contenu
+                  
+	   [BUFFER]
 
 Nous allons réécrire notre vptr avec une adresse du début de notre buffer 0x804a00c
 Qui elle contiendra l'adresse suivante sur le buffer 0x804a010
