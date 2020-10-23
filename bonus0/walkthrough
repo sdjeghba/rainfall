@@ -1,0 +1,35 @@
+    __                           ____ 
+   / /_  ____  ____  __  _______/ __ \
+  / __ \/ __ \/ __ \/ / / / ___/ / / /
+ / /_/ / /_/ / / / / /_/ (__  ) /_/ / 
+/_.___/\____/_/ /_/\__,_/____/\____/  
+                                      
+                                      
+
+Afin de mieux comprendre les tenants et aboutissant de l'asm nous allons nous intéresser dans l'ordre : à la fonction <p> puis <pp>
+
+
+Que fait <p> ?
+
+- Prend en paramètres la string (1) " - " ainsi qu'une autre (2) chaine vide :   
+- Nous affiche " - " avec puts()
+- Récupére nos input avec un read()
+- Remplace le "\n" de nos input par "\0"
+- Copie les 20 premiers caratères de nos input dans (2)
+
+La fonction <p> est appelée deux fois de suite avec pour paramètres :
+- (1) " - " & (2) -0x30(%ebp) lors du premier appel à <p> 
+- (1) " - " & (2) -0x1c(%ebp) lors du second appel à <p>
+
+Noter ici qu'il ya une différence de 20 entre -0x30(%ebp) et -0x1c(%ebp), les deux chaines se suivent dans la stack.
+De plus si nos input sont supérieurs à 20 caractères alors le "\n" est bien remplacé mais le "\0" n'est pas copié dans (2), puisque nos deux chaines
+se suivent dans la stack et qu'il n'y a plus de "\0" pour les dissocier, il forme alors une seule et unique chaine. 
+
+
+Que fait <pp>
+
+- Copie notre premier input dans le buffer recu en paramètre lors de son appel dans le <main>
+- Recherche le "\0" dans celle ci pour ensuite le remplacer par " "
+- Concaténe notre premier et second input
+                        
+                        
