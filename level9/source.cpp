@@ -12,6 +12,9 @@ class	Number
 		virtual int operator+(Number &otherCL){
 			return number + otherCL.number;
 		}
+		virtual int operator-(Number &otherCL){
+			return number - otherCL.number;
+		}
 }
 
 int		main(int ac, char **av)
