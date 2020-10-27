@@ -1,8 +1,8 @@
 # rainfall
 
+Rainfall is an iso of challenge slightly more complex than Snow Crash which will plunge us in the meanders of the reverse engineering and will teach us to rebuild a code and to understand its operation in order to find the flaws.
 
 
-</style>
 <table class="tg">
 <thead>
   <tr>
