@@ -13,6 +13,7 @@ int		main(int ac, char **av)
 	char *str = malloc(64);
 	void *addr = malloc(4);
 	void (*ptr)(void);
+
 	addr = (char *)0x8048468;
 	strcpy(str, av[1]);
 	ptr = addr;
