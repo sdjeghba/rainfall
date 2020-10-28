@@ -28,23 +28,23 @@ Dump of assembler code for function main:
    0x080484fc <+8>:	  sub    $0xa0,%esp
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------
    0x08048502 <+14>:	mov    $0x80486f0,%edx                 
-   0x08048507 <+19>:	mov    $0x80486f2,%eax                   Ici "r" ainsi que "/home/user/end/.pass" sont push en paramètres à la fonnction fopen()
-   0x0804850c <+24>:	mov    %edx,0x4(%esp)                    qui retourne un file descriptor stocké sur la stack [0x9c(%esp)].
-   0x08048510 <+28>:	mov    %eax,(%esp)                       (Pour la suite de l'analyse [0x9c(%esp)] = FD)
+   0x08048507 <+19>:	mov    $0x80486f2,%eax                Ici "r" ainsi que "/home/user/end/.pass" sont push en paramètres à la fonnction fopen()
+   0x0804850c <+24>:	mov    %edx,0x4(%esp)                 qui retourne un file descriptor stocké sur la stack [0x9c(%esp)].
+   0x08048510 <+28>:	mov    %eax,(%esp)                    (Pour la suite de l'analyse [0x9c(%esp)] = FD)
    0x08048513 <+31>:	call   0x8048410 <fopen@plt>          
    0x08048518 <+36>:	mov    %eax,0x9c(%esp)                
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------
    0x0804851f <+43>:	lea    0x18(%esp),%ebx                 
-   0x08048523 <+47>:	mov    $0x0,%eax                       Ici est initialisé l'espace memoire [0x18(%esp)] avec des '0' et cela sur 33 bytes.
-   0x08048528 <+52>:	mov    $0x21,%edx                      (Pour la suite de l'analyse [0x18(%esp)] = STR)
+   0x08048523 <+47>:	mov    $0x0,%eax                      Ici est initialisé l'espace memoire [0x18(%esp)] avec des '0' et cela sur 33 bytes.
+   0x08048528 <+52>:	mov    $0x21,%edx                     (Pour la suite de l'analyse [0x18(%esp)] = STR)
    0x0804852d <+57>:	mov    %ebx,%edi
    0x0804852f <+59>:	mov    %edx,%ecx
    0x08048531 <+61>:	rep stos %eax,%es:(%edi)
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------
    0x08048533 <+63>:	cmpl   $0x0,0x9c(%esp)
-   0x0804853b <+71>:	je     0x8048543 <main+79>             Ici FD est comparé à 0. Dans GDB le drop de privilège rend ce JE <+71> effectif ce qui nous fait 
-   0x0804853d <+73>:	cmpl   $0x2,0x8(%ebp)                  quitter le programme via le JMP <+84>. Hors GDB  JE <+71> sera ignoré. Et si nous avons bien entré un 
-   0x08048541 <+77>:	je     0x804854d <main+89>             seul argument le JE <+77> lui s'executera.
+   0x0804853b <+71>:	je     0x8048543 <main+79>            Ici FD est comparé à 0. Dans GDB le drop de privilège rend ce JE <+71> effectif ce qui nous fait 
+   0x0804853d <+73>:	cmpl   $0x2,0x8(%ebp)                 quitter le programme via le JMP <+84>. Hors GDB  JE <+71> sera ignoré. Et si nous avons bien entré un 
+   0x08048541 <+77>:	je     0x804854d <main+89>            seul argument le JE <+77> lui s'executera.
    0x08048543 <+79>:	mov    $0xffffffff,%eax
    0x08048548 <+84>:	jmp    0x8048615 <main+289>
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------
