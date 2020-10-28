@@ -1,0 +1,117 @@
+   __                          _____
+   / /_  ____  ____  __  ______|__  /
+  / __ \/ __ \/ __ \/ / / / ___//_ < 
+ / /_/ / /_/ / / / / /_/ (__  )__/ / 
+/_.___/\____/_/ /_/\__,_/____/____/  
+                                     
+
+>$ bonus3@RainFall:~$ ./bonus3
+
+>$ bonus3@RainFall:~$ ./bonus3 AAAA
+\n
+>$ bonus3@RainFall:~$ ./bonus3 AAAA BBBB
+
+Lorque l'on envoie un seul argument le programme nous prompt un retour à la ligne.
+
+>$ bonus3@RainFall:~$ objdump -d bonus3
+
+On observe un <main> que nous allons tenter d'analyser :
+____________________________________________________________________________________________________________________________________________________________________
+
+(gdb) disas
+Dump of assembler code for function main:
+   0x080484f4 <+0>:	push   %ebp 
+   0x080484f5 <+1>:	mov    %esp,%ebp                  
+   0x080484f7 <+3>:	push   %edi
+   0x080484f8 <+4>:	push   %ebx
+   0x080484f9 <+5>:	and    $0xfffffff0,%esp
+   0x080484fc <+8>:	sub    $0xa0,%esp
+   -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+   0x08048502 <+14>:	mov    $0x80486f0,%edx                 
+   0x08048507 <+19>:	mov    $0x80486f2,%eax                Ici "r" ainsi que "/home/user/end/.pass" sont push en paramètres pour la fonnction fopen()
+   0x0804850c <+24>:	mov    %edx,0x4(%esp)                 qui retourne un file descriptor stocké sur la stack [0x9c(%esp)].
+   0x08048510 <+28>:	mov    %eax,(%esp)                    (Pour la suite de l'analyse [0x9c(%esp)] = FD)
+   0x08048513 <+31>:	call   0x8048410 <fopen@plt>          
+   0x08048518 <+36>:	mov    %eax,0x9c(%esp)                
+   -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+   0x0804851f <+43>:	lea    0x18(%esp),%ebx                 
+   0x08048523 <+47>:	mov    $0x0,%eax                      Ici est initialisé l'espace memoire [0x18(%esp)] avec des '0' et cela sur 33 bytes.
+   0x08048528 <+52>:	mov    $0x21,%edx                     (Pour la suite de l'analyse [0x18(%esp)] = STR)
+   0x0804852d <+57>:	mov    %ebx,%edi
+   0x0804852f <+59>:	mov    %edx,%ecx
+   0x08048531 <+61>:	rep stos %eax,%es:(%edi)
+   -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+   0x08048533 <+63>:	cmpl   $0x0,0x9c(%esp)
+   0x0804853b <+71>:	je     0x8048543 <main+79>            Ici FD est comparé à 0. Dans GDB le drop de privilège rend ce JE <+71> effectif ce qui nous fait 
+   0x0804853d <+73>:	cmpl   $0x2,0x8(%ebp)                 quitter le programme via le JMP <+84>. Hors GDB  JE <+71> sera ignoré. Et si nous avons bien entré un 
+   0x08048541 <+77>:	je     0x804854d <main+89>            seul argument le JE <+77> lui s'executera.
+   0x08048543 <+79>:	mov    $0xffffffff,%eax
+   0x08048548 <+84>:	jmp    0x8048615 <main+289>
+   -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+   0x0804854d <+89>:	lea    0x18(%esp),%eax
+   0x08048551 <+93>:	mov    0x9c(%esp),%edx                Ici tout les arguments necessairent à fread() sont push sur la stack.
+   0x08048558 <+100>:	mov    %edx,0xc(%esp)                 size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+   0x0804855c <+104>:	movl   $0x42,0x8(%esp)
+   0x08048564 <+112>:	movl   $0x1,0x4(%esp)                 size_t fread(STR, 1, 66, FD);
+   0x0804856c <+120>:	mov    %eax,(%esp)                    Les 66 premiers caractères du fichier .pass seront donc copier dans STR suivis d'un '\0'
+   0x0804856f <+123>:	call   0x80483d0 <fread@plt>
+   0x08048574 <+128>:	movb   $0x0,0x59(%esp)
+   -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+   0x08048579 <+133>:	mov    0xc(%ebp),%eax       
+   0x0804857c <+136>:	add    $0x4,%eax                      Ici AV[0] est récupéré, 4 lui est ajouté afin d'avoir notre argument AV[1] puis de récupérer 
+   0x0804857f <+139>:	mov    (%eax),%eax                    son contenu. Ce dernier est push en parmètre pour la fonction atoi(). Le retour de atoi() est utilisé
+   0x08048581 <+141>:	mov    %eax,(%esp)                    comme index pour insérer un '\0' dans STR --------> STR[atoi(AV[1])] = '\0'
+   0x08048584 <+144>:	call   0x8048430 <atoi@plt>           Ce qui tronquera notre STR.                                   
+   0x08048589 <+149>:	movb   $0x0,0x18(%esp,%eax,1)
+   -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+   0x0804858e <+154>:	lea    0x18(%esp),%eax
+   0x08048592 <+158>:	lea    0x42(%eax),%edx                Ici de nouveau les arguments necessairent à fread() sont push sur la stack.
+   0x08048595 <+161>:	mov    0x9c(%esp),%eax                
+   0x0804859c <+168>:	mov    %eax,0xc(%esp)                 size_t fread(STR+66, 1, 65, FD);
+   0x080485a0 <+172>:	movl   $0x41,0x8(%esp)                Les 65 caractères suivant (après les 66 premiers lu lors du fread() précédent) du fichier .pass seront 
+   0x080485a8 <+180>:	movl   $0x1,0x4(%esp)                 donc copier à STR+66.
+   0x080485b0 <+188>:	mov    %edx,(%esp)
+   0x080485b3 <+191>:	call   0x80483d0 <fread@plt>
+   -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+   0x080485b8 <+196>:	mov    0x9c(%esp),%eax                
+   0x080485bf <+203>:	mov    %eax,(%esp)                    Ici le fichier .pass est fermé.
+   0x080485c2 <+206>:	call   0x80483c0 <fclose@plt>
+   -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+   0x080485c7 <+211>:	mov    0xc(%ebp),%eax
+   0x080485ca <+214>:	add    $0x4,%eax                      Ici de nouveau AV[0] est récupéré, 4 lui est ajouté afin d'avoir notre argument AV[1] puis de récupérer  
+   0x080485cd <+217>:	mov    (%eax),%eax                    son contenu. AV[1] et notre STR tronqué est push en parmètre pour à fonction strcmp() afin d'etre 
+   0x080485cf <+219>:	mov    %eax,0x4(%esp)                 comparé.
+   0x080485d3 <+223>:	lea    0x18(%esp),%eax                - Si strcmp() nous retourne 0 est que donc AV[1] == STR alors un shell sera éxécuté.
+   0x080485d7 <+227>:	mov    %eax,(%esp)                    - Sinon un jump JNE est effectué et le programme exit.
+   0x080485da <+230>:	call   0x80483b0 <strcmp@plt>
+   0x080485df <+235>:	test   %eax,%eax
+   0x080485e1 <+237>:	jne    0x8048601 <main+269>
+   -----------------------------------------------------------------------------------------------------------------------------------------------------------------
+   0x080485e3 <+239>:	movl   $0x0,0x8(%esp)
+   0x080485eb <+247>:	movl   $0x8048707,0x4(%esp)           Comment accéder à cette partie du binaire qui l'ouverture d'un shell ?
+   0x080485f3 <+255>:	movl   $0x804870a,(%esp)              - Notre argument doit modifier, tronquer la chaîne STR de sorte à ce que par la suite 
+   0x080485fa <+262>:	call   0x8048420 <execl@plt>            STR soit égal à notre argument.
+   0x080485ff <+267>:	jmp    0x8048610 <main+284>           - Après une batterie de test nous dressons le tableau suivant :
+   0x08048601 <+269>:	lea    0x18(%esp),%eax                  
+   0x08048605 <+273>:	add    $0x42,%eax                             ARG    |   ATOI(ARG)   |             STR                                      |   ARG == STR
+   0x08048608 <+276>:	mov    %eax,(%esp)                            INT    |      INT      |    STR tronqué à l'index INT                         |       NO
+   0x0804860b <+279>:	call   0x80483e0 <puts@plt>                   CHAR   |       0       |    STR tronqué à l'index 0 soit une chaine vide ""   |       NO
+   0x08048610 <+284>:	mov    $0x0,%eax                              CHAR*  |       0       |    STR tronqué à l'index 0 soit une chaine vide ""   |       NO
+   0x08048615 <+289>:	lea    -0x8(%ebp),%esp                        ""     |       0       |    STR tronqué à l'index 0 soit une chaine vide ""   |      `YES
+   0x08048618 <+292>:	pop    %ebx
+   0x08048619 <+293>:	pop    %edi                           Notre argument doit donc être égale à "".
+   0x0804861a <+294>:	pop    %ebp
+   0x0804861b <+295>:	ret
+   
+End of assembler dump.
+____________________________________________________________________________________________________________________________________________________________________
+
+
+bonus3@RainFall:~$ ./bonus3 ""
+$ whoami
+end
+$ cat /home/user/end/.pass
+3321b6f81659f9a71c76616f606e4b50189cecfea611393d5d649f75e157353c
+
+
+THE END.
