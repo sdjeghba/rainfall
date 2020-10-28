@@ -93,11 +93,11 @@ Dump of assembler code for function main:
    0x080485fa <+262>:	call   0x8048420 <execl@plt>            STR soit égal à notre argument.
    0x080485ff <+267>:	jmp    0x8048610 <main+284>           - Après une batterie de test nous dressons le tableau suivant :
    0x08048601 <+269>:	lea    0x18(%esp),%eax                  
-   0x08048605 <+273>:	add    $0x42,%eax                             ARG    |   ATOI(ARG)   |             STR                                      |   ARG == STR
-   0x08048608 <+276>:	mov    %eax,(%esp)                            INT    |      INT      |    STR tronqué à l'index INT                         |       NO
-   0x0804860b <+279>:	call   0x80483e0 <puts@plt>                   CHAR   |       0       |    STR tronqué à l'index 0 soit une chaine vide ""   |       NO
-   0x08048610 <+284>:	mov    $0x0,%eax                              CHAR*  |       0       |    STR tronqué à l'index 0 soit une chaine vide ""   |       NO
-   0x08048615 <+289>:	lea    -0x8(%ebp),%esp                        ""     |       0       |    STR tronqué à l'index 0 soit une chaine vide ""   |      `YES
+   0x08048605 <+273>:	add    $0x42,%eax                          ARG    |   ATOI(ARG)   |             STR                                      |   ARG == STR
+   0x08048608 <+276>:	mov    %eax,(%esp)                         INT    |      INT      |    STR tronqué à l'index INT                         |       NO
+   0x0804860b <+279>:	call   0x80483e0 <puts@plt>                CHAR   |       0       |    STR tronqué à l'index 0 soit une chaine vide ""   |       NO
+   0x08048610 <+284>:	mov    $0x0,%eax                           CHAR*  |       0       |    STR tronqué à l'index 0 soit une chaine vide ""   |       NO
+   0x08048615 <+289>:	lea    -0x8(%ebp),%esp                     ""     |       0       |    STR tronqué à l'index 0 soit une chaine vide ""   |      `YES
    0x08048618 <+292>:	pop    %ebx
    0x08048619 <+293>:	pop    %edi                           Notre argument doit donc être égale à "".
    0x0804861a <+294>:	pop    %ebp
