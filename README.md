@@ -61,7 +61,7 @@ Rainfall is an iso of challenge slightly more complex than Snow Crash which will
   </tr>
   <tr>
     <td class="tg-0lax">bonus3</td>
-    <td class="tg-buh4">3321b6f81659f9a71c76616f606e4b50189cecfea611393d5d649f75e157353c</td>
+    <td class="tg-buh4">71d449df0f960b36e0055eb58c14d0f5d0ddc0b35328d657f91cf0df15910587</td>
   </tr>
 </tbody>
 </table>
