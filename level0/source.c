@@ -1,9 +1,3 @@
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <stdio.h>
-
 /*
 **	We get the effetive suid et guid wich are level1's , and set them to our
 **	programm to open the shell. Don't forget that the /tmp setups of our VM
