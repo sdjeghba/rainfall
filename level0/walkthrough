@@ -5,25 +5,43 @@
 /_/\___/|___/\___/_/\____/  
                                        
 
-Nous avons un executable ./level0 avec les setuid.
-Il segfault si il est lance sans arguements, et il nous repond "No !" quand il
-en recoit,  nous allons explorer ca avec gdb:
+>$ level0@RainFall:~$ ./level0
+   Segmentation fault (core dumped)
 
+>$ level0@RainFall:~$ ./level0 AAAA
+   No !
+
+>$ level0@RainFall:~$ ./level0 AAAA BBBB
+   No !
+
+Nous pouvons observer que sans argument notre programme SEGFAULT, autrement "No !" nous est envoyé.
+
+>$ objdump -d level0
+
+On découvre l'existence d'un main. Que nous allons explorer avec la commande "disas" dans gdb:
+
+   0x08048ec9 <+9>:	    mov    0xc(%ebp),%eax
+   0x08048ecc <+12>:	add    $0x4,%eax
+   0x08048ecf <+15>:	mov    (%eax),%eax
+   0x08048ed1 <+17>:	mov    %eax,(%esp)   
    0x08048ed4 <+20>:	call   0x8049710 <atoi>
    0x08048ed9 <+25>:	cmp    $0x1a7,%eax
    0x08048ede <+30>:	jne    0x8048f58 <main+152>
+   
+On observe notamment cette section, on comprends que si nous voulons éviter le JNE <+30> il nous faut réussir le comparatif
+entre notre 1er argument et 0x1a7 (423). Ainsi éventuellement accéder à cette section qui correspond à l'ouverture d'un shell :
 
-Nous avons un atoi effectue sur notre entree, le resultat est compare avec 423
-(0x1a7) et un jump est effectue dans le cas ou notre entree serait differente,
-vers la fin du programme ou un write est effectue, surement celui du "No !".
+   0x08048f46 <+134>:	mov    %eax,0x4(%esp)
+   0x08048f4a <+138>:	movl   $0x80c5348,(%esp)
+   0x08048f51 <+145>:	call   0x8054640 <execv>
+   
 
-Nous relancons le programme avec 423 et nos avons donc un shell en tant que
-user "level1".
+Dès lors nous relancons le programme avec 423 en argument et nous obtenons un shell avec les bonnes permisssions compte tenu
+de l'utilisation des fonstions getegid(), geteuid(), setresgid() et setresuid() que nous avont pu constater dans le disas du <main>
 
-Nous allons donc recuperer le mot de passe comme explique dans le PDF.
+>$ level0@RainFall:~$ ./level0 423
+   $ cat /home/user/level1/.pass
+   1fe8a524fa4bec01ca4ea2a869af2a02260d4a7d5fe7e7c24d8617e6dca12d3a
 
-level0@RainFall:~$ ./level0 423
-$ cat /home/user/level1/.pass
-1fe8a524fa4bec01ca4ea2a869af2a02260d4a7d5fe7e7c24d8617e6dca12d3a
 
 Next level..
