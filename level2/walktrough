@@ -46,7 +46,7 @@ $> (gdb) disas p
     0x08048500 <+44>:	cmp     $0xb0000000,%eax 		(3) Comparaison
     0x08048505 <+49>:	jne     0x8048527 <p+83>
     ….
-    0x08048522 <+78>:	call    0x80483d0 <_exit@plt>       (4) Exit
+    0x08048522 <+78>:	call    0x80483d0 <_exit@plt>           (4) Exit
     0x08048527 <+83>:	lea    -0x4c(%ebp),%eax 
 
 
@@ -60,8 +60,10 @@ Start Addr 	   End Addr      Size       Offset objfile
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-On remarque, en mettant un break  sur le return de la fonction <p> que notre registre EAX contient 
-l’adresse de notre buffer :
+"La fonction strdup(str) renvoie un pointeur sur une nouvelle chaîne de caractères qui est dupliquée depuis str. La mémoire occupée par cette nouvelle chaîne est 
+obtenue en appelant malloc()"
+
+En mettant un break après strdup() on recupère dans EAX l'adresse de la nouvelle chaîne de caractères qui est dupliquée depuis notre buffer :
 
 $> (gdb) disas p
     …
@@ -75,8 +77,10 @@ $> (gdb) i r eax
 $> (gdb) x/s 0x804a008
     0x804a008:	 "This is my input"
 
-Il serait donc possible d’exécuter un shellcode contenu dans notre buffer via notre input si nous pouvions réécrire EIP SAVED avec l’adresse d’une instruction 
-faisant appel à EAX.
+L'espace mémoire de notre nouvelle chaîne étant allouée par malloc(), on récupére une addresse de la heap, qui va elle pouvoir passer la vérificatiion évoqué
+précédemment.
+
+Il serait donc alors possible d’exécuter un shellcode en réécrivantl'EIP SAVED avec l’adresse d’une instruction éxécutant (CALL ou JMP) le contenu d'EAX. 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
