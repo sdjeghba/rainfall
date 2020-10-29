@@ -1,10 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
 
 int		p()
 {
-	char			buffer[76];
+	char		buffer[76];
 	unsigned int	check;
 
 	fflush(stdout);
