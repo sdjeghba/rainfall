@@ -29,7 +29,9 @@ On découvre l'existence d'un main. Que nous allons explorer avec la commande "d
    0x08048ede <+30>:	jne    0x8048f58 <main+152>
    
 On observe notamment cette section, on comprends que si nous voulons éviter le JNE <+30> il nous faut réussir le comparatif
-entre notre 1er argument et 0x1a7 (423). Ainsi éventuellement accéder à cette section qui correspond à l'ouverture d'un shell :
+entre notre 1er argument et 0x1a7 (423). 
+
+Et ainsi accéder à cette section qui correspond à l'ouverture d'un shell :
 
    0x08048f46 <+134>:	mov    %eax,0x4(%esp)
    0x08048f4a <+138>:	movl   $0x80c5348,(%esp)
