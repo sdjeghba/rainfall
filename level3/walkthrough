@@ -5,24 +5,25 @@
 /_/\___/|___/\___/_//____/  
                             
                            
-On lance le binaire et on se rend compte qu'il duplique ce que l'on écrit sur l'entrée standard. 
 
 level3@RainFall:~$ ./level3
 AAAA
 AAAA
 
-Again …
+On lance le binaire et on se rend compte qu'il duplique ce que l'on écrit sur l'entrée standard. Again …
 
 >$ (gdb) objdump -d level3
 
 On peut voir que le <main> fait appel à une fonction <v>. On parcours <v> celle ci utilise la fonction fgets().
+
 L’utilisation de fgets() à la place de gets() complique la tâche de réalisation d’un buffer overflow : 
 
-“The gets() function cannot be used securely.  Because of its lack of bounds checking, and the inability for the calling program to reliably determine 
-the length of the next incoming line, the use of this function enables malicious users to arbitrarily change a running program's functionality through a 
-buffer overflow attack.  It is strongly suggested that the fgets() function be used in all cases.”
+“N'utilisez jamais gets(). Comme il est impossible de savoir à l'avance combien de caractères seront lus par gets(), et comme celui-ci écrira tous les caractères
+lus, même s'ils débordent du tampon, cette fonction est extrèmement dangereuse à utiliser. On a déjà utilisé ce dysfonctionnement pour créer des trous de sécurité.
+Utilisez fgets() à la place.”
 
 char *fgets(char *restrict str, int size,FILE * restrict stream);
+
 _____________________________________________________________________________________________________________________________________________________
 
 >$ (gdb) disas v
