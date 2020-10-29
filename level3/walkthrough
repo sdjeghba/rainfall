@@ -6,13 +6,13 @@
                             
                            
 
-level3@RainFall:~$ ./level3
-AAAA
-AAAA
+>$  level3@RainFall:~$ ./level3
+    AAAA
+    AAAA
 
 On lance le binaire et on se rend compte qu'il duplique ce que l'on écrit sur l'entrée standard. Again …
 
->$ (gdb) objdump -d level3
+>$  (gdb) objdump -d level3
 
 On peut voir que le <main> fait appel à une fonction <v>. On parcours <v> celle ci utilise la fonction fgets().
 
