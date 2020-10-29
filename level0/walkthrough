@@ -20,7 +20,7 @@ Nous pouvons observer que sans argument notre programme SEGFAULT, autrement "No 
 
 On découvre l'existence d'un main. Que nous allons explorer avec la commande "disas" dans gdb:
 
-   0x08048ec9 <+9>:   mov    0xc(%ebp),%eax
+   0x08048ec9 <+9>:     mov    0xc(%ebp),%eax
    0x08048ecc <+12>:	add    $0x4,%eax
    0x08048ecf <+15>:	mov    (%eax),%eax
    0x08048ed1 <+17>:	mov    %eax,(%esp)   
