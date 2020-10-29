@@ -19,9 +19,10 @@ On peut voir que le <main> fait appel à une fonction <n>. On parcours <n> celle
 
 L’utilisation de fgets() à la place de gets() complique la tâche de réalisation d’un buffer overflow : 
 
-“N'utilisez jamais gets(). Comme il est impossible de savoir à l'avance combien de caractères seront lus par gets(), et comme celui-ci écrira tous les caractères
-lus, même s'ils débordent du tampon, cette fonction est extrèmement dangereuse à utiliser. On a déjà utilisé ce dysfonctionnement pour créer des trous de sécurité.
-Utilisez fgets() à la place.”
+“N'utilisez jamais gets(). Comme il est impossible de savoir à l'avance combien de caractères seront lus par gets(), et comme celui-ci écrira tous 
+les caractères lus, même s'ils débordent du tampon, cette fonction est extrèmement dangereuse à utiliser. On a déjà utilisé ce dysfonctionnement pour
+créer des trous de sécurité. Utilisez fgets() à la place.”
+
 
 char *fgets(char *restrict str, int size,FILE * restrict stream);
 
