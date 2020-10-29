@@ -35,11 +35,13 @@ On trouve en entrant 0x37634136 dans le site web un offset de 80, qui correspond
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Cependant il ne sera pas possible de procéder de la meme façon qu’au level1, en effet on peut voir que l'EIP SAVED est soumise à une verification :
+À noter qu'avant l'éxécution de fgets() EIP SAVED correspond à une adresse de la heap.
 
 $> (gdb) disas p
 
     0x080484f2 <+30>:	mov     0x4(%ebp),%eax			(1) EIP SAVED (ebp + 0x4) est stockée dans EAX
     ….
+    0x080484ed <+25>:	call    0x80483c0 <gets@plt>
     0x080484fb <+39>:	and     $0xb0000000,%eax		(2) Operation logique 
     0x08048500 <+44>:	cmp     $0xb0000000,%eax 		(3) Comparaison
     0x08048505 <+49>:	jne     0x8048527 <p+83>
