@@ -59,7 +59,7 @@ On affiche notre le haut de notre stack et on identifie notre input de "A" :
 (gdb) p /d 0xbffff6fc - 0xbffff6b0
 $1 = 76
 
-Notre buffer est donc de taille 76. L'EIP sauvegardé correspond à l'adresse à laquelle le programme retournera une le <main> éxecuté.
+Notre buffer est donc de taille 76. L'EIP sauvegardé correspond à l'adresse à laquelle le programme retournera une fois le <main> éxecuté.
 
 La fonction <run> contenant un appel à system() semble être un bon point de chute si nous parvenons à réécrire l'EIP en entrant plus de 76 octets. 
 
