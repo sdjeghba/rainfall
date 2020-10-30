@@ -22,11 +22,11 @@ Toujours rien ...
 
 Intéressant on remarque que dès que notre argument est supérieur à 108 le programme SEGFAULT.
 
-objdump -p pour afficher les headers privés
+>$ objdump -p (pour afficher les headers privés)
 Dynamic Section:
   NEEDED               libstdc++.so.6
 
-obdjump -t pour lister les entrées de la table des symbol
+>$ obdjump -t (pour lister les entrées de la table des symboles)
 00000000 l    df *ABS*	00000000              level9.cpp
 
 CPP ...
