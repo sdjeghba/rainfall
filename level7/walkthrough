@@ -81,9 +81,9 @@ Dump of assembler code for function main:			|
    0x080485d8 <+183>:	mov    %eax,0x8(%esp)		(4) Le fd est push en argument à fgets()
    0x080485dc <+187>:	movl   $0x44,0x4(%esp)		(5) ainsi qu'une size
    0x080485e4 <+195>:	movl   $0x8049960,(%esp)	(6) et une variable <c> qui contient une chaine vide sensé acceuillir le contenu de .pass
-   0x080485eb <+202>:	call   0x80483c0 <fgets@plt>	[WARNING] GDB drop les privilèges -> pas de suid, pas de droit sur le fichier .pass, fopen() renvoie donc 
-   							NULL, que nous donnons comme argument à fgets(), qui recoit un signal SIGSEGV, Segmentation fault. Dès lors 
-							il va falloir faire sans GDB.
+   0x080485eb <+202>:	call   0x80483c0 <fgets@plt>	[WARNING] GDB drop les privilèges -> pas de suid, pas de droit sur le fichier .pass, fopen() renvoie 
+   							donc NULL, que nous donnons comme argument à fgets(), qui recoit un signal SIGSEGV, Segmentation fault. Dès
+							lors il va falloir faire sans GDB.
    0x080485f0 <+207>:	movl   $0x8048703,(%esp)	
    0x080485f7 <+214>:	call   0x8048400 <puts@plt>	(7) Nous renvoie les "~~" cette fonction nous est d'aucune utilité. Réutilisons l'exploit GOT. 
    			------------------------------------------------------------------------------------------------------------------------------------------------
