@@ -44,12 +44,12 @@ Dump of assembler code for function main:
    0x08048533 <+63>: cmpl   $0x0,0x9c(%esp)
    0x0804853b <+71>: je     0x8048543 <main+79>            Ici FD est comparé à 0. Dans GDB le drop de privilège rend ce JE <+71> effectif ce qui nous fait 
    0x0804853d <+73>: cmpl   $0x2,0x8(%ebp)                 un quitter le programme via le JMP <+84>. Hors GDB  JE <+71> sera ignoré. Et si nous avons bien entré 
-   0x08048541 <+77>: je     0x804854d <main+89>            seul argument le JE <+77> lui s'executera.
-   0x08048543 <+79>: mov    $0xffffffff,%eax
-   0x08048548 <+84>: jmp    0x8048615 <main+289>
+   0x08048541 <+77>:    je     0x804854d <main+89>            seul argument le JE <+77> lui s'executera.
+   0x08048543 <+79>:    mov    $0xffffffff,%eax
+   0x08048548 <+84>:    jmp    0x8048615 <main+289>
    -----------------------------------------------------------------------------------------------------------------------------------------------------------------
-   0x0804854d <+89>: lea    0x18(%esp),%eax
-   0x08048551 <+93>: mov    0x9c(%esp),%edx                 Ici tout les arguments necessairent à fread() sont push sur la stack.
+   0x0804854d <+89>:    lea    0x18(%esp),%eax
+   0x08048551 <+93>:    mov    0x9c(%esp),%edx                 Ici tout les arguments necessairent à fread() sont push sur la stack.
    0x08048558 <+100>:	mov    %edx,0xc(%esp)                  size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
    0x0804855c <+104>:	movl   $0x42,0x8(%esp)
    0x08048564 <+112>:	movl   $0x1,0x4(%esp)                  size_t fread(STR, 1, 66, FD);
