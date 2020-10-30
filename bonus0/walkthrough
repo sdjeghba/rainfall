@@ -10,7 +10,7 @@
 
 On constate dans le <main> la présence d'une fonction <pp> qui à son tour apelle une fonction <p>
 
-Afin de mieux comprendre les tenants et aboutissant de l'asm nous allons nous intéresser dans l'ordre : <p> --> <pp> --> 
+Afin de mieux comprendre les tenants et aboutissant de l'asm nous allons nous intéresser dans l'ordre à <p> puis <pp>
 
 
 Que fait <p> ?
