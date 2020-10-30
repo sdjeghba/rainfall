@@ -1,4 +1,9 @@
-bffff670#BONUS 2
+    __                          ___ 
+   / /_  ____  ____  __  ______|__ \
+  / __ \/ __ \/ __ \/ / / / ___/_/ /
+ / /_/ / /_/ / / / / /_/ (__  ) __/ 
+/_.___/\____/_/ /_/\__,_/____/____/ 
+                                    
 
 Le binaire ne fais rien quand on lui on envoi un argument,
 Il nous print "Hello" + le 1er argument quand il en reçoit 2.
