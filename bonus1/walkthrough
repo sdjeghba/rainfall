@@ -38,9 +38,9 @@ Dump of assembler code for function main:
    0x08048435 <+17>:	mov    %eax,(%esp)                 -    et push en argument sur la stack
    0x08048438 <+20>:	call   0x8048360 <atoi@plt>        -    pour la fonction atoi() qui nous retournera un int X
    0x0804843d <+25>:	mov    %eax,0x3c(%esp)             -    celui ci est stocké sur la stack
-   0x08048441 <+29>:	cmpl   $0x9,0x3c(%esp)             -    et comparé à la valeur 9 [HINT_1]
+   0x08048441 <+29>:	cmpl   $0x9,0x3c(%esp)             -    et comparé à la valeur 9 
    0x08048446 <+34>:	jle    0x804844f <main+43>         -    si X <= 9 alors le jump JLE s'effectue le programme se pousuit, JLE peut être
-   0x08048448 <+36>:	mov    $0x1,%eax                        utilisé avec des nombres signé [HINT_2]
+   0x08048448 <+36>:	mov    $0x1,%eax                        utilisé avec des nombres signé 
    0x0804844d <+41>:	jmp    0x80484a3 <main+127>        -    si X > 9 alors le jump JMP s'effectue le programme exit    
    0x0804844f <+43>:	mov    0x3c(%esp),%eax             -    JLE nous fait atterir ici ou on retrouve X 
    0x08048453 <+47>:	lea    0x0(,%eax,4),%ecx           -    multiplié par 4 et stocké dans le registre ECX
